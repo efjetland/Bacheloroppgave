@@ -33,8 +33,8 @@ while True:
         if "value:" in child.before:
             print(child.before.split("value:")[0])
             data = child.before.split("value:")[1].strip().split(" ")
-            print("BPM: {}".format((int(data[1],16)))
-            if(data[0]&1<<5)
+            print("BPM: {}".format((int(data[1],16))))
+            if (int(data[0],16)&(1<<4)) != 0: 
                 iterator = iter(data[2:])
                 for i, j in enumerate(iterator):
                     j = j + next(iterator)
