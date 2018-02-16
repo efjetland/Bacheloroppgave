@@ -22,9 +22,10 @@ for address in device_list:
     print("Connected successfully")
     child.sendline("char-write-req 0x0011 0100")
     child.expect("Characteristic value was written successfully")
-    f = open("log.txt", "w+")
     children.append(child)
-    
+
+log = open("log.txt", "w+")
+log.write("\n\n---- Starting logging at: " + time.ctime(time.time()) + " ---- \n\n")
 while True:
     for ind, child in enumerate(children):
         child.expect("\n")
@@ -32,9 +33,13 @@ while True:
         if "value:" in child.before:
             print(child.before.split("value:")[0])
             data = child.before.split("value:")[1].strip().split(" ")
-            for i, j in enumerate(data):
-                k = int(j,16)
-                print("{}: {} = {}".format(i, j, k))
-            
+            print("BPM: {}".format((int(data[1],16)))
+            if(data[0]&1<<5)
+                iterator = iter(data[2:])
+                for i, j in enumerate(iterator):
+                    j = j + next(iterator)
+                    k = int(j, 16)
+                    print("{}: {} = {}".format(i, j, k))
+
         print("Length: " + str(len(child.before)))
-        f.write(child.before)
+        log.write(child.before)
