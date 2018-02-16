@@ -11,11 +11,17 @@ import random
 LARGE_FONT = ("Verdana", 35)
 BACKGROUND_COLOR = "#393939"
 GRAPH_COLOR = "#B8B8B8"
+#STATUS CONSTANTS
+NOTSTARTED = 0
+PAUSED = 1
+RUNNING = 2
 
 #GlobalVar
 isRunning = True
-hasStarted = False
+status = 0
 startTime = time.time()
+pauseTime = 0
+timePaused = 0
 
 #Test data:
 timestamps = []
@@ -23,11 +29,8 @@ sensors = {"Sensor1":[],
            "Sensor2":[],
            "Sensor3":[]}
 
-
-
 class Loggerapp(tk.Tk):
 
-    frame = None
     def __init__(self,  *args, **kwargs):
 
         tk.Tk.__init__(self,  *args, **kwargs)
@@ -51,10 +54,10 @@ class Loggerapp(tk.Tk):
         self.frame.updateGraph()
 
 class MainWindow(tk.Frame):
-
     figure=None
     plot=None
     canvas = None
+
     def __init__(self, parent):
         tk.Frame.__init__(self, parent) #initialize the main window frame
 
@@ -65,10 +68,15 @@ class MainWindow(tk.Frame):
 
         self.startButtonImage = tk.PhotoImage(file="gButton.gif") #load green button image
         self.stopButtonImage = tk.PhotoImage(file="rButton.gif") #load red button image
+        self.pauseButtonImage = tk.PhotoImage(file="yButton.gif") #laod yellow button image
         #create start button with image
-        tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.startButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.startButtonAction).grid(row=0, column=0, sticky="N", padx=10, pady=10)
+        self.startButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.startButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.startButtonAction)
+        self.startButton.grid(row=0, column=0, sticky="N", padx=10, pady=10)
         #create stop button with image
-        tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.stopButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.stopButtonAction).grid(row=0, column=1, sticky="S", padx=10, pady=10)
+        self.stopButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.stopButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.stopButtonAction)
+        self.stopButton.grid(row=0, column=1, sticky="S", padx=10, pady=10)
+        #create pause button with image, but don't add it to UI yet
+        self.pauseButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.pauseButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.pauseButtonAction)
 
         figure = Figure(figsize=(5,2.4),dpi=100) #create a new figure
         figure.patch.set_facecolor(GRAPH_COLOR) #set background color around the graph
@@ -93,13 +101,28 @@ class MainWindow(tk.Frame):
         canvas.get_tk_widget().pack(side="bottom", fill="both", expand=True, padx=30, pady=20) #add the canvas to the window
 
     def startButtonAction(self):
-        global hasStarted
-        if not hasStarted:
-            hasStarted=True
+        global status
+        if status < RUNNING:
             print("Starting.")
-            global startTime
-            startTime = time.time()
+            if status == NOTSTARTED:
+                global startTime
+                startTime = time.time()
+            if status == PAUSED:
+                global timePaused, pauseTime
+                timePaused += (time.time() - pauseTime)
+            status = RUNNING
+            self.pauseButton.grid(row=0, column=0, sticky="N", padx=10, pady=10)
+            self.startButton.grid_remove()
 
+    def pauseButtonAction(self):
+        global status
+        if status == RUNNING:
+            global pauseTime
+            pauseTime = time.time()
+            print("Pausing.")
+            self.startButton.grid(row=0, column=0, sticky="N", padx=10, pady=10)
+            self.pauseButton.grid_remove()
+            status = PAUSED
 
     def stopButtonAction(self):
         if tkMessageBox.askyesno("Confirm", "Do you really want to stop?"):
@@ -116,7 +139,6 @@ class MainWindow(tk.Frame):
             self.saveDataTxt()
             self.saveRawData()
             self.saveDataJsonByTimestamps()
-
 
     def updateGraph(self):
         self.plot.clear()
@@ -177,12 +199,11 @@ class MainWindow(tk.Frame):
 app = Loggerapp()
 #app.mainloop()
 while isRunning:
-    time.sleep(1)
-    if hasStarted:
+    if status == RUNNING:
         if len(timestamps) == 0:
             timestamps.append(0)
         else:
-            timestamps.append(time.time() - startTime)
+            timestamps.append(time.time() - startTime - timePaused)
         for ind, (key, value) in enumerate(sensors.items()):
             temp = random.randrange(5,50,1)
             sensors[key].append(temp)
