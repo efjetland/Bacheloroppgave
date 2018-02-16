@@ -1,0 +1,2 @@
+# Bacheloroppgave
+Bacheloroppgave i data
