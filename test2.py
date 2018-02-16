@@ -30,6 +30,7 @@ while True:
     for ind, child in enumerate(children):
         child.expect("\n")
         print("\n\nSensor {}: \n".format(ind))
+        log.write("\n\nSensor {}: \n".format(ind))
         if "value:" in child.before:
             print("Raw data: " + child.before.split("value:")[1])
             log.write("Raw data: " + child.before.split("value:")[1])
