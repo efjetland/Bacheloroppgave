@@ -14,6 +14,8 @@ GRAPH_COLOR = "#B8B8B8"
 
 #GlobalVar
 isRunning = True
+hasStarted = False
+startTime = time.time()
 
 #Test data:
 timestamps = []
@@ -70,20 +72,19 @@ class MainWindow(tk.Frame):
 
         figure = Figure(figsize=(5,2.4),dpi=100) #create a new figure
         figure.patch.set_facecolor(GRAPH_COLOR) #set background color around the graph
-        mpl.rc('lines', lw=1.5) #width of graph lines
+        mpl.rc('lines', lw=0.5) #width of graph lines
         plot = figure.add_subplot(111, fc=GRAPH_COLOR) #create subplot and axes, set background on graph
-        plot.set_xlabel("Time")
-        plot.set_ylabel("HR")
-        plot.set_title("Heartratevariablility over time")
-        figure.tight_layout(pad=0.2)
-        self.figure=figure
-        self.plot=plot
-        plot.set_xlim(0,30)
+        self.figure = figure
+        self.plot = plot
+        plot.set_xlim(0, 30)
         #Plot data from each sensor
         for key, value in sensors.items():
             x = timestamps
             y = value
             self.plot.plot(x,y, label=key) #Plot the data
+        plot.set_xlabel("Time")
+        plot.set_ylabel("HR")
+        plot.set_title("Heartratevariablility over time")
         plot.legend(loc="upper right")
 
         canvas = FigureCanvasTkAgg(figure, master=graphPanel) #create a canvas to draw the figure on, graphPanel is parent
@@ -92,7 +93,13 @@ class MainWindow(tk.Frame):
         canvas.get_tk_widget().pack(side="bottom", fill="both", expand=True, padx=30, pady=20) #add the canvas to the window
 
     def startButtonAction(self):
-        print("clickerino")
+        global hasStarted
+        if not hasStarted:
+            hasStarted=True
+            print("Starting.")
+            global startTime
+            startTime = time.time()
+
 
     def stopButtonAction(self):
         if tkMessageBox.askyesno("Confirm", "Do you really want to stop?"):
@@ -113,6 +120,9 @@ class MainWindow(tk.Frame):
 
     def updateGraph(self):
         self.plot.clear()
+        self.plot.set_ylabel("HR")
+        self.plot.set_title("Heartratevariablility over time")
+        self.plot.margins(tight=True)
         for key, value in sensors.items():
             x = timestamps
             y = value
@@ -166,18 +176,18 @@ class MainWindow(tk.Frame):
 
 app = Loggerapp()
 #app.mainloop()
-startTime = time.time()
 while isRunning:
-    time.sleep(0.5)
+    time.sleep(1)
+    if hasStarted:
+        if len(timestamps) == 0:
+            timestamps.append(0)
+        else:
+            timestamps.append(time.time() - startTime)
+        for ind, (key, value) in enumerate(sensors.items()):
+            temp = random.randrange(5,50,1)
+            sensors[key].append(temp)
+        app.updateGraph()
+
     app.update()
     app.update_idletasks()
-    if len(timestamps) == 0:
-        timestamps.append(0)
-    else:
-        timestamps.append(time.time() - startTime)
-    for ind, (key, value) in enumerate(sensors.items()):
-        temp = random.randrange(5,50,1)
-        sensors[key].append(temp)
-    app.updateGraph()
-
 app.destroy()
