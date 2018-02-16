@@ -31,15 +31,15 @@ while True:
         child.expect("\n")
         print("\n\nSensor {}: \n".format(ind))
         if "value:" in child.before:
-            print(child.before.split("value:")[0])
+            print("Raw data: " + child.before.split("value:")[1])
+            log.write("Raw data: " + child.before.split("value:")[1])
             data = child.before.split("value:")[1].strip().split(" ")
-            print("BPM: {}".format((int(data[1],16))))
-            if (int(data[0],16)&(1<<4)) != 0: 
+            print("BPM: {}".format(int(data[1],16)))
+            log.write("BPM: {} \n".format(int(data[1],16)))
+            if (int(data[0],16)&(1<<4)) != 0:
                 iterator = iter(data[2:])
                 for i, j in enumerate(iterator):
                     j = j + next(iterator)
                     k = int(j, 16)
-                    print("{}: {} = {}".format(i, j, k))
-
-        print("Length: " + str(len(child.before)))
-        log.write(child.before)
+                    print("RR-Interval-{}: {}\n".format(i, k))
+                    log.write("RR-Interval-{}: {}\n".format(i, k))
