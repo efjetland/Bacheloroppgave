@@ -65,40 +65,50 @@ class MainWindow(tk.Frame):
         buttonPanel.grid(column=0, row=1, sticky="S") #add the container to the mainwindow frame on the second row
         graphPanel = tk.Frame(self, bg=BACKGROUND_COLOR) #container for the graph
         graphPanel.grid(column=0,row=0) #add the container to the mainwindow frame on the first row
+        optionsPanel = tk.Frame(self, bg="#303030", width=186, height=415)
+        optionsPanel.grid(column=1, row=0, rowspan=2, sticky="NE")
 
+        #BUTTON SECTION
         self.startButtonImage = tk.PhotoImage(file="gButton.gif") #load green button image
         self.stopButtonImage = tk.PhotoImage(file="rButton.gif") #load red button image
         self.pauseButtonImage = tk.PhotoImage(file="yButton.gif") #laod yellow button image
         #create start button with image
         self.startButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.startButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.startButtonAction)
-        self.startButton.grid(row=0, column=0, sticky="N", padx=10, pady=10)
+        self.startButton.grid(row=0, column=0, sticky="N", padx=50, pady=10)
         #create stop button with image
         self.stopButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.stopButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.stopButtonAction)
-        self.stopButton.grid(row=0, column=1, sticky="S", padx=10, pady=10)
+        self.stopButton.grid(row=0, column=1, sticky="S", padx=50, pady=10)
         #create pause button with image, but don't add it to UI yet
         self.pauseButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.pauseButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.pauseButtonAction)
 
-        figure = Figure(figsize=(5,2.4),dpi=100) #create a new figure
+        #GRAPH SECTION
+        figure = Figure(figsize=(5.86,2.3),dpi=100) #create a new figure
         figure.patch.set_facecolor(GRAPH_COLOR) #set background color around the graph
         mpl.rc('lines', lw=0.5) #width of graph lines
         plot = figure.add_subplot(111, fc=GRAPH_COLOR) #create subplot and axes, set background on graph
         self.figure = figure
         self.plot = plot
         plot.set_xlim(0, 30)
+        plot.set_ylim(0, 70)
+        plot.margins(tight=True)
+        self.linelist = []
         #Plot data from each sensor
         for key, value in sensors.items():
             x = timestamps
             y = value
-            self.plot.plot(x,y, label=key) #Plot the data
+            line, = plot.plot(x,y, label=key)
+            print(line)
+            self.linelist.append(line) #Plot the data
         plot.set_xlabel("Time")
         plot.set_ylabel("HR")
         plot.set_title("Heartratevariablility over time")
         plot.legend(loc="upper right")
 
+
         canvas = FigureCanvasTkAgg(figure, master=graphPanel) #create a canvas to draw the figure on, graphPanel is parent
         self.canvas=canvas
         canvas.show()
-        canvas.get_tk_widget().pack(side="bottom", fill="both", expand=True, padx=30, pady=20) #add the canvas to the window
+        canvas.get_tk_widget().pack(side="left", fill="both", expand=True, padx=14, pady=14) #add the canvas to the window
 
     def startButtonAction(self):
         global status
@@ -125,11 +135,17 @@ class MainWindow(tk.Frame):
             status = PAUSED
 
     def stopButtonAction(self):
-        if tkMessageBox.askyesno("Confirm", "Do you really want to stop?"):
-
+        global status, timestamps
+        cont = False
+        if status == RUNNING:
+            self.pauseButtonAction()
+            cont = True
+        if status != NOTSTARTED and tkMessageBox.askyesno("Confirm", "Do you really want to stop?"):
             print("Stopped at {}".format(timestamps[len(timestamps)-1]))
-            global isRunning
-            isRunning = False
+            cont = False
+            if status == RUNNING:
+                self.startButton.grid(row=0, column=0, sticky="N", padx=10, pady=10)
+                self.pauseButton.grid_remove()
             #Check if data directory exitsts, create if not
             directory="data/"
             if not os.path.exists(directory):
@@ -139,17 +155,20 @@ class MainWindow(tk.Frame):
             self.saveDataTxt()
             self.saveRawData()
             self.saveDataJsonByTimestamps()
+            status = NOTSTARTED
+            timestamps = []
+            for key, value in sensors.items():
+                sensors[key] = []
+        if cont:
+            self.startButtonAction()
 
     def updateGraph(self):
-        self.plot.clear()
-        self.plot.set_ylabel("HR")
-        self.plot.set_title("Heartratevariablility over time")
-        self.plot.margins(tight=True)
-        for key, value in sensors.items():
+
+        for i, (key, value) in enumerate(sensors.items()):
             x = timestamps
             y = value
-            self.plot.plot(x,y, label=key) #Plot the data
-        self.plot.legend(loc="upper right")
+            self.linelist[i].set_data(x,y)
+
         if timestamps[len(timestamps)-1] < 30:
             self.plot.set_xlim(0,30)
         else:
@@ -208,7 +227,7 @@ while isRunning:
             temp = random.randrange(5,50,1)
             sensors[key].append(temp)
         app.updateGraph()
-
+        print(time.time() - startTime - timePaused)
     app.update()
     app.update_idletasks()
 app.destroy()
