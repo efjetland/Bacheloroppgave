@@ -216,7 +216,7 @@ class MainWindow(tk.Frame):
             f.write("{}".format(sensors))
 
 app = Loggerapp()
-#app.mainloop()
+#Main Loop
 while isRunning:
     if status == RUNNING:
         if len(timestamps) == 0:
@@ -229,5 +229,5 @@ while isRunning:
         app.updateGraph()
         print(time.time() - startTime - timePaused)
     app.update()
-    app.update_idletasks()
+    #app.update_idletasks()
 app.destroy()
