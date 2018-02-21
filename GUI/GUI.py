@@ -11,6 +11,7 @@ import random
 LARGE_FONT = ("Verdana", 35)
 BACKGROUND_COLOR = "#393939"
 GRAPH_COLOR = "#B8B8B8"
+TIMEMULTIPLIER = 1 #Debug variable to "speed up" time
 #STATUS CONSTANTS
 NOTSTARTED = 0
 PAUSED = 1
@@ -22,6 +23,11 @@ status = 0
 startTime = time.time()
 pauseTime = 0
 timePaused = 0
+
+#DebugInfo
+timerSecond=time.time()
+ticks = 0
+ticksLastSecond = 0
 
 #Test data:
 timestamps = []
@@ -110,6 +116,8 @@ class MainWindow(tk.Frame):
         canvas.show()
         canvas.get_tk_widget().pack(side="left", fill="both", expand=True, padx=14, pady=14) #add the canvas to the window
 
+        self.l = 0
+
     def startButtonAction(self):
         global status
         if status < RUNNING:
@@ -156,6 +164,7 @@ class MainWindow(tk.Frame):
             self.saveRawData()
             self.saveDataJsonByTimestamps()
             status = NOTSTARTED
+            self.l = 0
             timestamps = []
             for key, value in sensors.items():
                 sensors[key] = []
@@ -163,16 +172,24 @@ class MainWindow(tk.Frame):
             self.startButtonAction()
 
     def updateGraph(self):
-
-        for i, (key, value) in enumerate(sensors.items()):
-            x = timestamps
-            y = value
-            self.linelist[i].set_data(x,y)
-
         if timestamps[len(timestamps)-1] < 30:
             self.plot.set_xlim(0,30)
+            for i, (key, value) in enumerate(sensors.items()):
+                x = timestamps[self.l:len(timestamps)]
+                y = value[self.l:len(timestamps)]
+                self.linelist[i].set_data(x,y)
         else:
             self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
+            if self.l == 0:
+                self.l = len(timestamps)
+            for i, (key, value) in enumerate(sensors.items()):
+                x = timestamps[len(timestamps)-self.l:len(timestamps)]
+                y = value[len(timestamps)-self.l:len(timestamps)]
+                self.linelist[i].set_data(x,y)
+
+
+
+
         self.canvas.show()
 
     def saveDataTxt(self):
@@ -216,18 +233,30 @@ class MainWindow(tk.Frame):
             f.write("{}".format(sensors))
 
 app = Loggerapp()
+
 #Main Loop
 while isRunning:
+
     if status == RUNNING:
         if len(timestamps) == 0:
             timestamps.append(0)
         else:
-            timestamps.append(time.time() - startTime - timePaused)
+            timestamps.append((time.time() - startTime - timePaused)*TIMEMULTIPLIER)
         for ind, (key, value) in enumerate(sensors.items()):
             temp = random.randrange(5,50,1)
             sensors[key].append(temp)
         app.updateGraph()
-        print(time.time() - startTime - timePaused)
+
+        ticks+=1
+        ticksLastSecond+=1
+        avg = ticks / (time.time() - startTime- timePaused)
+        if time.time() - timerSecond > 1:
+            avgSecond = ticksLastSecond/(time.time()-timerSecond)
+            ticksLastSecond = 0
+            timerSecond=time.time()
+            print("Loops this past second: {}".format(avgSecond))
+            print("Average loops for total runtime: {}".format(avg))
     app.update()
-    #app.update_idletasks()
+
+
 app.destroy()
