@@ -69,6 +69,7 @@ children = []
 for ind, address in enumerate(device_list):
     child = Child(str(ind), address)
     child.connect()
+    print("Connected to sensor: " + child.getName())
     print("Battery level: " + child.battery_level())
     child.start()
     children.append(child)
