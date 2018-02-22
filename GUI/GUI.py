@@ -1,5 +1,5 @@
 import Tkinter as tk
-import tkMessageBox, os
+import tkMessageBox, os, csv
 import matplotlib as mpl
 import time
 mpl.use('TkAgg')
@@ -9,9 +9,12 @@ import random
 
 #Constants
 LARGE_FONT = ("Verdana", 35)
+MEDIUM_FONT = ("Verdana", 15)
+SMALL_FONT = ("Verdana", 10)
 BACKGROUND_COLOR = "#393939"
 GRAPH_COLOR = "#B8B8B8"
-TIMEMULTIPLIER = 1 #Debug variable to "speed up" time
+TIMEMULTIPLIER = 45 #Debug variable to "speed up" time
+
 #STATUS CONSTANTS
 NOTSTARTED = 0
 PAUSED = 1
@@ -34,6 +37,23 @@ timestamps = []
 sensors = {"Sensor1":[],
            "Sensor2":[],
            "Sensor3":[]}
+discoveredBluetoothDevices= {"PolarBelt1":"1293128973981273",
+                             "PolarBelt12":"1212312312311273",
+                             "PolarBelt13":"1231231981271231",
+                             "PolarBelt14":"1267978967897273",
+                             "PolarBelt42":"1212312312311273",
+                             "PolarBelt23":"1231231981271231",
+                             "PolarBelt34":"1267978967897273",
+                             "PolarBelt32":"1212312312311273",
+                             "PolarBelt43":"1231231981271231",
+                             "PolarBelt44":"1267978967897273",
+                             "PolarBelt52":"1212312312311273",
+                             "PolarBelt53":"1231231981271231",
+                             "PolarBelt54":"1267978967897273",
+                             "PolarBelt62":"1212312312311273",
+                             "PolarBelt73":"1231231981271231",
+                             "PolarBelt84":"1267978967897273",
+                             "PolarBelt5":"1293121849418465"}
 
 class Loggerapp(tk.Tk):
 
@@ -45,26 +65,54 @@ class Loggerapp(tk.Tk):
         tk.Tk.geometry(self, "800x415")
         self.maxsize(width=800, height=455)
         self.minsize(width=600, height=400)
+        self.test="Ronny321"
 
         container = tk.Frame(self) #Container frame, full window
         container["bg"] = BACKGROUND_COLOR #Set the background color of the main window
         container.pack(side="bottom", fill="both", expand=True) #Pack the full frame
 
-        frame = MainWindow(container) #Store the content of the main window class in a variable, set it's parent to the container view
-        frame.pack(anchor="w")
-        frame["bg"] = BACKGROUND_COLOR #set the background color of the MainWindow class
-        frame.tkraise() #Display the window
-        self.frame = frame
+        self.windows = {}
+
+        startWindow = StartWindow(container, self) #Store the content of the start window class in a variable, set it's parent to the container view
+        startWindow.grid(row=0, column=0, sticky="nsew")
+        startWindow["bg"] = BACKGROUND_COLOR #set the background color of the startWindow class
+        self.windows["startWindow"] = startWindow
+
+        mainWindow = MainWindow(container, self) #Store the content of the main window class in a variable, set it's parent to the container view
+        mainWindow.grid(row=0, column=0, sticky="nsew")
+        mainWindow["bg"] = BACKGROUND_COLOR #set the background color of the MainWindow class
+        self.windows["mainWindow"] = mainWindow
+
+        connectWindow = ConnectionWindow(container, self) #Store the content of the main window class in a variable, set it's parent to the container view
+        connectWindow.grid(row=0, column=0, sticky="nsew")
+        connectWindow["bg"] = BACKGROUND_COLOR #set the background color of the MainWindow class
+        self.windows["connectWindow"] = connectWindow
+
+        connectWindow.tkraise()
 
     def updateGraph(self):
-        self.frame.updateGraph()
+        self.windows["mainWindow"].updateGraph()
+
+
+    def changeView(self, windowName):
+        self.windows[windowName].tkraise()
+
+class StartWindow(tk.Frame):
+
+    def __init__(self, parent, windowController):
+        tk.Frame.__init__(self, parent)
+        tk.Button(self, text=windowController.test, command=self.nextAction).grid(pady=200,padx=400)
+        self.windowController = windowController
+
+    def nextAction(self):
+        self.windowController.changeView("mainWindow")
 
 class MainWindow(tk.Frame):
-    figure=None
-    plot=None
-    canvas = None
 
-    def __init__(self, parent):
+
+    def __init__(self, parent, controller):
+
+        self.windowController = controller
         tk.Frame.__init__(self, parent) #initialize the main window frame
 
         buttonPanel = tk.Frame(self, bg=BACKGROUND_COLOR, pady=15) #container for buttons
@@ -160,9 +208,10 @@ class MainWindow(tk.Frame):
                 os.makedirs(directory)
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
             #File saving options:
-            self.saveDataTxt()
-            self.saveRawData()
-            self.saveDataJsonByTimestamps()
+            #self.saveDataTxt()
+            #self.saveRawData()
+            #self.saveDataJsonByTimestamps()
+            self.saveCSVFile()
             status = NOTSTARTED
             self.l = 0
             timestamps = []
@@ -211,6 +260,7 @@ class MainWindow(tk.Frame):
 
                 f.write("\n")
             f.write("Stopped at {}".format(timestamps[len(timestamps)-1]))
+            print("Saved .txt file")
 
     def saveDataJsonByTimestamps(self):
         with open("data/data.json", "w") as f:
@@ -226,11 +276,59 @@ class MainWindow(tk.Frame):
                     f.write('"{}":{}'.format(key,value[timestamps.index(time)]))
                 f.write('}')
             f.write("\n    }\n}")
+            print("Saved .json file")
 
     def saveRawData(self):
         with open("data/data.dat", "w") as f:
             f.write("{}\n".format(timestamps))
             f.write("{}".format(sensors))
+            print("Saved .dat file")
+
+    def saveCSVFile(self):
+        with open("data/data.csv","wb") as f:
+            w = csv.writer(f)
+            w.writerow(["TIMES:"] + timestamps)
+            for key, val in sensors.items():
+                w.writerow([key] + val)
+            print("Saved .csv file")
+
+class ConnectionWindow(tk.Frame):
+
+    def __init__(self, parent, windowController):
+        self.windowController = windowController
+        tk.Frame.__init__(self, parent)
+
+        #Main layout of connection screen
+        leftPanel = tk.Frame(self, bg=BACKGROUND_COLOR,width=400,height=300)
+        leftPanel.grid(row=0,column=0, sticky="N")
+        rightPanel = tk.Frame(self, bg="blue",width=400,height=300)
+        rightPanel.grid(row=0,column=1, sticky="E")
+        buttonPanel = tk.Frame(self, bg="green",width=800,height=120)
+        buttonPanel.grid(row=1,column=0,columnspan=2, sticky="S")
+
+        #LeftPanel setup
+        topLabel = tk.Label(leftPanel,text="Nearby Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
+        topLabel.grid(row=0,column=0,pady=5,padx=90)
+        self.listBox = tk.Listbox(leftPanel, width=40, bg=GRAPH_COLOR, bd=0, font=SMALL_FONT, highlightthickness=0, relief="flat", activestyle="dotbox")
+        self.listBox.grid(row=1,column=0)
+        for device in discoveredBluetoothDevices.keys():
+            self.listBox.insert(tk.END, device)
+
+        #ButtonPanel setup
+        self.scanButtonImage = tk.PhotoImage(file="scanButton.gif") #load Scan button image
+        self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.scanButton.grid(row=0,column=0)
+
+        self.connectButtonImage = tk.PhotoImage(file="connectButton.gif") #load Scan button image
+        self.connectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.connectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.connectDevice)
+        self.connectButton.grid(row=0,column=1)
+
+    def nextAction(self):
+        self.windowController.changeView("mainWindow")
+
+    def connectDevice(self):
+        selectedOption = self.listBox.curselection()
+        print(self.listBox.get(selectedOption))
 
 app = Loggerapp()
 
