@@ -3,7 +3,7 @@ import pexpect
 import time
 
 class Child:
-    __init__(self, name, address):
+    def __init__(self, name, address):
         self.name = name
         self.address = address
         self.spawn = pexpect.spawn("gatttool -t random -I -b {0}".format(address))
@@ -41,16 +41,17 @@ class Child:
 
     def fetch_data(self):
         if self.isRunning:
-            self.spawn.expect("value:")
-            self.spawn.expect("\n")
-            return spawn.before()
+            self.spawn.expect("value:", timeout=2)
+            self.spawn.expect("\r\n")
+            return self.spawn.before
         else:
             return -1
 
     def battery_level(self):
         self.spawn.sendline("char-read-hnd 0x0041")
         self.spawn.expect("Characteristic value/descriptor:")
-        data = self.spawn.before()
+        self.spawn.expect("\r\n")
+        data = self.spawn.before
         return str(int(data, 16)) + "%"
 
 
@@ -93,12 +94,14 @@ log.write("\n\n---- Starting logging at: " + time.ctime(time.time()) + " ---- \n
 while True:
     for ind, child in enumerate(children):
         data = child.fetch_data()
+        print("\n\nSensor {}:\n".format(child.getName()))
+        log.write("\n\nSensor {}:\n".format(child.getName()))
         if data != -1:
             print(data)
-            log.write(data)
+            log.write("Raw data: " + data + "\n")
             data = data.strip().split(" ")
             print("BPM: {}".format(int(data[1], 16)))
-            log.write("BPM: {}".format(int(data[1], 16)))
+            log.write("BPM: {} \n".format(int(data[1], 16)))
             if (int(data[0],16)&(1<<4)) != 0:
                 iterator = iter(data[2:])
                 for i, j in enumerate(iterator):
