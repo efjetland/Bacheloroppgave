@@ -39,23 +39,6 @@ timestamps = []
 sensors = {"Sensor1":[],
            "Sensor2":[],
            "Sensor3":[]}
-discoveredBluetoothDevices= {"PolarBelt1":"1293128973981273",
-                             "PolarBelt12":"1212312312311273",
-                             "PolarBelt13":"1231231981271231",
-                             "PolarBelt14":"1267978967897273",
-                             "PolarBelt42":"1212312312311273",
-                             "PolarBelt23":"1231231981271231",
-                             "PolarBelt34":"1267978967897273",
-                             "PolarBelt32":"1212312312311273",
-                             "PolarBelt43":"1231231981271231",
-                             "PolarBelt44":"1267978967897273",
-                             "PolarBelt52":"1212312312311273",
-                             "PolarBelt53":"1231231981271231",
-                             "PolarBelt54":"1267978967897273",
-                             "PolarBelt62":"1212312312311273",
-                             "PolarBelt73":"1231231981271231",
-                             "PolarBelt84":"1267978967897273",
-                             "PolarBelt5":"1293121849418465"}
 
 class Loggerapp(tk.Tk):
 
@@ -350,6 +333,8 @@ class ConnectionWindow(tk.Frame):
 
     def nextAction(self):
         self.windowController.changeView("mainWindow")
+        for device in connectedDevices:
+            sensors[device.getName()] = []
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
