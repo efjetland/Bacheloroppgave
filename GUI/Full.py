@@ -365,13 +365,14 @@ class ConnectionWindow(tk.Frame):
                         connectedDevices.append(name)
                         self.connectedListBox.insert(tk.END, name)
                         self.deviceListBox.delete(selectedOption)
+                        break
 
     def scanForDevices(self):
         global devices
         devices = scan()
         print devices
         print connectedDevices
-        self.deviceListBox.delete(tk.FIRST,tk.END)
+        self.deviceListBox.delete(0,tk.END)
         for address, name in devices.items():
             inList = False
             for device in connectedDevices:
@@ -382,19 +383,17 @@ class ConnectionWindow(tk.Frame):
 
     def disconnectDevice(self):
         selectedOption = self.connectedListBox.curselection()
-        print selectedOption
+        print(selectedOption)
         if selectedOption != ():
             name = self.connectedListBox.get(selectedOption)
             print name
-            for key, val in connectedDevices.items():
-                if val == name:
-                    for child in connectedDevices:
-                        if child.getName == name:
-                            if child.disconnect():
-                                connectedDevices.remove()
-                                connectedDevices.append(name)
-                                self.deviceListBox.insert(tk.END, name)
-                                self.connectedListBox.delete(selectedOption)
+            for device in connectedDevices:
+                if device.getName() == name:
+                    if child.disconnect():
+                        connectedDevices.remove(child)
+                        self.deviceListBox.insert(tk.END, name)
+                        self.connectedListBox.delete(selectedOption)
+                        break
 
 connectedDevices = []
 sensors = {}
