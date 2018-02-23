@@ -359,10 +359,9 @@ class ConnectionWindow(tk.Frame):
             print name
             for key, val in devices.items():
                 if val == name:
-                    child = HeartRateMonitor(name, key)
-                    if child.connect():
-                        connectedDevices.append(child)
-                        connectedDevices.append(name)
+                    device = HeartRateMonitor(name, key)
+                    if device.connect():
+                        connectedDevices.append(device)
                         self.connectedListBox.insert(tk.END, name)
                         self.deviceListBox.delete(selectedOption)
                         break
@@ -389,8 +388,8 @@ class ConnectionWindow(tk.Frame):
             print name
             for device in connectedDevices:
                 if device.getName() == name:
-                    if child.disconnect():
-                        connectedDevices.remove(child)
+                    if device.disconnect():
+                        connectedDevices.remove(device)
                         self.deviceListBox.insert(tk.END, name)
                         self.connectedListBox.delete(selectedOption)
                         break
