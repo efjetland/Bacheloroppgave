@@ -404,7 +404,7 @@ class ConnectionWindow(tk.Frame):
         self.disconnectButton.grid(row=0, column=2, padx=10)
 
         self.continueButtonImage = tk.PhotoImage(file="images/contButton.gif") #load Scan button image
-        self.continueButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.continueButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.continueButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.continueButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.nextAction)
         self.continueButton.grid(row=0, column=3, padx=10)
 
     def nextAction(self):
@@ -415,14 +415,14 @@ class ConnectionWindow(tk.Frame):
         if selectedOption != "":
             name = self.deviceListBox.get(selectedOption)
             print name
-            connectedDevices.append(name)
-            self.connectedListBox.insert(tk.END, name)
-            self.deviceListBox.delete(selectedOption)
             for key, val in devices.items():
                 if val == name:
                     child = Child(name, key)
-                    print "connection status for {}: {}".format(name, child.connect())
-                    children.append(child)
+                    if child.connect():
+                        children.append(child)
+                        connectedDevices.append(name)
+                        self.connectedListBox.insert(tk.END, name)
+                        self.deviceListBox.delete(selectedOption)
 
     def scanForDevices(self):
         global devices
@@ -434,6 +434,20 @@ class ConnectionWindow(tk.Frame):
             if address not in connectedDevices:
                 connectedDevices.append(address)
 
+    def disconnectDevice(self):
+        selectedOption = self.deviceListBox.curselection()
+        if selectedOption != "":
+            name = self.deviceListBox.get(selectedOption)
+            print name
+            for key, val in connectedDevices.items():
+                if val == name:
+                    for child in children:
+                        if child.getName == name:
+                            if child.disconnect():
+                                children.remove()
+                                connectedDevices.append(name)
+                                self.connectedListBox.insert(tk.END, name)
+                                self.deviceListBox.delete(selectedOption)
 
 children = []
 sensors = {}
