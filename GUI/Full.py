@@ -126,7 +126,7 @@ class Loggerapp(tk.Tk):
         tk.Tk.geometry(self, "800x415")
         self.maxsize(width=800, height=455)
         self.minsize(width=600, height=400)
-        self.test="Ronny321"
+        self.test="TestButtonTHing"
 
         container = tk.Frame(self) #Container frame, full window
         container["bg"] = BACKGROUND_COLOR #Set the background color of the main window
@@ -360,38 +360,61 @@ class ConnectionWindow(tk.Frame):
         tk.Frame.__init__(self, parent)
 
         #Main layout of connection screen
-        leftPanel = tk.Frame(self, bg=BACKGROUND_COLOR,width=400,height=300)
-        leftPanel.grid(row=0,column=0, sticky="N")
-        rightPanel = tk.Frame(self, bg="blue",width=400,height=300)
-        rightPanel.grid(row=0,column=1, sticky="E")
-        buttonPanel = tk.Frame(self, bg="green",width=800,height=120)
-        buttonPanel.grid(row=1,column=0,columnspan=2, sticky="S")
+        leftPanel = tk.Frame(self, bg=BACKGROUND_COLOR, padx=30)
+        leftPanel.grid(row=0, column=0, sticky="NEWS", padx=0)
+        rightPanel = tk.Frame(self, bg=BACKGROUND_COLOR, padx=30)
+        rightPanel.grid(row=0, column=1, sticky="NEWS", padx=0)
+        buttonPanel = tk.Frame(self, bg=BACKGROUND_COLOR, pady=22, padx=15)
+        buttonPanel.grid(row=1, column=0, columnspan=2, sticky="SEW")
 
         #LeftPanel setup
-        topLabel = tk.Label(leftPanel,text="Nearby Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
-        topLabel.grid(row=0,column=0,pady=5,padx=90)
-        self.listBox = tk.Listbox(leftPanel, width=40, bg=GRAPH_COLOR, bd=0, font=SMALL_FONT, highlightthickness=0, relief="flat", activestyle="dotbox")
-        self.listBox.grid(row=1,column=0)
-        for device in devices.keys():
-            self.listBox.insert(tk.END, device)
+        deviceListLabel = tk.Label(leftPanel,text="Nearby Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
+        deviceListLabel.grid(row=0,column=0, sticky="N", padx=5)
+        scrollbar = tk.Scrollbar(leftPanel, orient=tk.VERTICAL)
+        deviceListBox = tk.Listbox(leftPanel, width=40, height=14, bg=GRAPH_COLOR, bd=0, font=SMALL_FONT, highlightthickness=0, relief="flat", activestyle="dotbox", yscrollcommand=scrollbar.set)
+        deviceListBox.grid(row=1,column=0, sticky="E")
+        scrollbar.config(command=deviceListBox.yview)
+        scrollbar.grid(row=1, column=1, sticky="WNS")
+        for device in devices.values():
+            deviceListBox.insert(tk.END, device)
+        self.deviceListBox = deviceListBox
+
+
+        #RightPanel setup
+        connectedListLabel = tk.Label(rightPanel,text="Connected Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
+        connectedListLabel.grid(row=0, column=0, sticky="N", padx=5)
+        scrollbar = tk.Scrollbar(rightPanel, orient=tk.VERTICAL)
+        connectedListBox = tk.Listbox(rightPanel, width=40, height=14, bg=GRAPH_COLOR, bd=0, font=SMALL_FONT, highlightthickness=0, relief="flat", activestyle="dotbox", yscrollcommand=scrollbar.set)
+        connectedListBox.grid(row=1,column=0, sticky="E")
+        scrollbar.config(command=connectedListBox.yview)
+        scrollbar.grid(row=1, column=1, sticky="WNS")
+        self.connectedListBox = connectedListBox
 
         #ButtonPanel setup
         self.scanButtonImage = tk.PhotoImage(file="scanButton.gif") #load Scan button image
         self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
-        self.scanButton.grid(row=0,column=0)
+        self.scanButton.grid(row=0, column=0, padx=10)
 
-        self.connectButtonImage = tk.PhotoImage(file="connectButton.gif") #load Scan button image
+        self.connectButtonImage = tk.PhotoImage(file="connectButton.gif") #load Connect button image
         self.connectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.connectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.connectDevice)
-        self.connectButton.grid(row=0,column=1)
+        self.connectButton.grid(row=0, column=1, padx=10)
+
+        self.disconnectButtonImage = tk.PhotoImage(file="disconnectButton.gif") #load Scan button image
+        self.disconnectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.disconnectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.disconnectButton.grid(row=0, column=2, padx=10)
+
+        self.continueButtonImage = tk.PhotoImage(file="contButton.gif") #load Scan button image
+        self.continueButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.continueButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.continueButton.grid(row=0, column=3, padx=10)
 
     def nextAction(self):
         self.windowController.changeView("mainWindow")
 
     def connectDevice(self):
-        selectedOption = self.listBox.curselection()
-        print(self.listBox.get(selectedOption))
+        selectedOption = self.deviceListBox.curselection()
+        print(discoveredBluetoothDevices[self.deviceListBox.get(selectedOption)])
 
-app = Loggerapp()
+
 
 children = []
 sensors= {}
@@ -406,13 +429,13 @@ for address, name in devices.items():
         child.start()
         children.append(child)
         sensors[child.getName()] = []
+app = Loggerapp()
         
-
+print sensors
 #Main Loop
 while isRunning:
     
     if status == RUNNING:
-        app.updateGraph()
 
         ticks+=1
         ticksLastSecond+=1
@@ -446,6 +469,8 @@ while isRunning:
             for ind, (key, value) in enumerate(sensors.items()):
                 temp = random.randrange(5,50,1)
                 sensors[key].append(temp)
+        app.updateGraph()
+
     app.update()
 
 
