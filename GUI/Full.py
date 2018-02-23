@@ -7,7 +7,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from gattlib import DiscoveryService
 import pexpect
-import random
 
 #Constants
 LARGE_FONT = ("Verdana", 35)
@@ -30,7 +29,8 @@ pauseTime = 0
 timePaused = 0
 service = DiscoveryService("hci0")
 devices = service.discover(2)
-device_list = []
+connectedDevices = []
+deviceList = []
 
 #DebugInfo
 timerSecond=time.time()
@@ -184,9 +184,9 @@ class MainWindow(tk.Frame):
         optionsPanel.grid(column=1, row=0, rowspan=2, sticky="NE")
 
         #BUTTON SECTION
-        self.startButtonImage = tk.PhotoImage(file="gButton.gif") #load green button image
-        self.stopButtonImage = tk.PhotoImage(file="rButton.gif") #load red button image
-        self.pauseButtonImage = tk.PhotoImage(file="yButton.gif") #laod yellow button image
+        self.startButtonImage = tk.PhotoImage(file="images/gButton.gif") #load green button image
+        self.stopButtonImage = tk.PhotoImage(file="images/rButton.gif") #load red button image
+        self.pauseButtonImage = tk.PhotoImage(file="images/yButton.gif") #laod yellow button image
         #create start button with image
         self.startButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.startButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.startButtonAction)
         self.startButton.grid(row=0, column=0, sticky="N", padx=50, pady=10)
@@ -375,8 +375,8 @@ class ConnectionWindow(tk.Frame):
         deviceListBox.grid(row=1,column=0, sticky="E")
         scrollbar.config(command=deviceListBox.yview)
         scrollbar.grid(row=1, column=1, sticky="WNS")
-        for device in devices.values():
-            deviceListBox.insert(tk.END, device)
+        for device in devices.keys():
+            deviceListBox.insert(tk.END, devices[device])
         self.deviceListBox = deviceListBox
 
 
@@ -391,19 +391,19 @@ class ConnectionWindow(tk.Frame):
         self.connectedListBox = connectedListBox
 
         #ButtonPanel setup
-        self.scanButtonImage = tk.PhotoImage(file="scanButton.gif") #load Scan button image
+        self.scanButtonImage = tk.PhotoImage(file="images/scanButton.gif") #load Scan button image
         self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.scanButton.grid(row=0, column=0, padx=10)
 
-        self.connectButtonImage = tk.PhotoImage(file="connectButton.gif") #load Connect button image
+        self.connectButtonImage = tk.PhotoImage(file="images/connectButton.gif") #load Connect button image
         self.connectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.connectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.connectDevice)
         self.connectButton.grid(row=0, column=1, padx=10)
 
-        self.disconnectButtonImage = tk.PhotoImage(file="disconnectButton.gif") #load Scan button image
+        self.disconnectButtonImage = tk.PhotoImage(file="images/disconnectButton.gif") #load Scan button image
         self.disconnectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.disconnectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.disconnectButton.grid(row=0, column=2, padx=10)
 
-        self.continueButtonImage = tk.PhotoImage(file="contButton.gif") #load Scan button image
+        self.continueButtonImage = tk.PhotoImage(file="images/contButton.gif") #load Scan button image
         self.continueButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.continueButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.continueButton.grid(row=0, column=3, padx=10)
 
@@ -412,48 +412,53 @@ class ConnectionWindow(tk.Frame):
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
-        print(discoveredBluetoothDevices[self.deviceListBox.get(selectedOption)])
+        if selectedOption != "":
+            name = self.deviceListBox.get(selectedOption)
+            print name
+            connectedDevices.append(name)
+            self.connectedListBox.insert(tk.END, name)
+            self.deviceListBox.delete(selectedOption)
+            for key, val in devices.items():
+                if val == name:
+                    child = Child(name, key)
+                    print "connection status for {}: {}".format(name, child.connect())
+                    children.append(child)
 
+    def scanForDevices(self):
+        global devices
+        devices = service.discover(2)
+        print devices
+        print deviceList
+        print connectedDevices
+        for address, name in devices.items():
+            if address not in connectedDevices:
+                connectedDevices.append(address)
 
 
 children = []
-sensors= {}
-for address, name in devices.items():
-    print("name: {}, address: {}".format(name, address))
-    if "Polar" in name:
-        print("This is polar device: {}".format(address))
-        child = Child(name, address)
-        child.connect()
-        print("Connected to sensor: " + child.getName())
-        print("Battery level: " + child.battery_level())
-        child.start()
-        children.append(child)
-        sensors[child.getName()] = []
+sensors = {}
 app = Loggerapp()
-        
-print sensors
 #Main Loop
 while isRunning:
     
     if status == RUNNING:
-
         ticks+=1
         ticksLastSecond+=1
         avg = ticks / (time.time() - startTime- timePaused)
-        if time.time() - timerSecond > 1:
+        if time.time() - timerSecond >= 1: #Code that will only run if more that a second has passed since last time the block started
             avgSecond = ticksLastSecond/(time.time()-timerSecond)
             ticksLastSecond = 0
             timerSecond=time.time()
-            print("Loops this past second: {}".format(avgSecond))
-            print("Average loops for total runtime: {}".format(avg))
+            #print("Loops this past second: {}".format(avgSecond))  #DEBUG
+            #print("Average loops for total runtime: {}".format(avg)) #DEBUG
             
-            for ind, child in enumerate(children):
+            for child in children:
                 data = child.fetch_data()
                 print("\n\nSensor {}:\n".format(child.getName()))
                 if data != -1:
                     print(data)
                     data = data.strip().split(" ")
-                    print("BPM: {}".format(int(data[1], 16)))
+                    sensors[child.getName()].append(int(data[1], 16))
                     if (int(data[0],16)&(1<<4)) != 0:
                         iterator = iter(data[2:])
                         for i, j in enumerate(iterator):
@@ -462,13 +467,11 @@ while isRunning:
                             print("RR-interval-{}: {}\n".format(i, k))
                 else:
                     print("Error fetching data")
+                    sensors[child.getName()].append(0)
             if len(timestamps) == 0:
                 timestamps.append(0)
             else:
                 timestamps.append((time.time() - startTime - timePaused)*TIMEMULTIPLIER)
-            for ind, (key, value) in enumerate(sensors.items()):
-                temp = random.randrange(5,50,1)
-                sensors[key].append(temp)
         app.updateGraph()
 
     app.update()
