@@ -149,7 +149,7 @@ class Loggerapp(tk.Tk):
         connectWindow["bg"] = BACKGROUND_COLOR #set the background color of the MainWindow class
         self.windows["connectWindow"] = connectWindow
 
-        mainWindow.tkraise()
+        connectWindow.tkraise()
 
     def updateGraph(self):
         self.windows["mainWindow"].updateGraph()
@@ -392,7 +392,7 @@ class ConnectionWindow(tk.Frame):
 
         #ButtonPanel setup
         self.scanButtonImage = tk.PhotoImage(file="images/scanButton.gif") #load Scan button image
-        self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.scanForDevices)
         self.scanButton.grid(row=0, column=0, padx=10)
 
         self.connectButtonImage = tk.PhotoImage(file="images/connectButton.gif") #load Connect button image
@@ -400,7 +400,7 @@ class ConnectionWindow(tk.Frame):
         self.connectButton.grid(row=0, column=1, padx=10)
 
         self.disconnectButtonImage = tk.PhotoImage(file="images/disconnectButton.gif") #load Scan button image
-        self.disconnectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.disconnectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
+        self.disconnectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.disconnectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.disconnectDevice)
         self.disconnectButton.grid(row=0, column=2, padx=10)
 
         self.continueButtonImage = tk.PhotoImage(file="images/contButton.gif") #load Scan button image
@@ -412,6 +412,7 @@ class ConnectionWindow(tk.Frame):
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
+        print(selectedOption)
         if selectedOption != "":
             name = self.deviceListBox.get(selectedOption)
             print name
@@ -435,9 +436,10 @@ class ConnectionWindow(tk.Frame):
                 connectedDevices.append(address)
 
     def disconnectDevice(self):
-        selectedOption = self.deviceListBox.curselection()
+        selectedOption = self.connectedListBox.curselection()
+        print selectedOption
         if selectedOption != "":
-            name = self.deviceListBox.get(selectedOption)
+            name = self.connectedListBox.get(selectedOption)
             print name
             for key, val in connectedDevices.items():
                 if val == name:
@@ -446,8 +448,8 @@ class ConnectionWindow(tk.Frame):
                             if child.disconnect():
                                 children.remove()
                                 connectedDevices.append(name)
-                                self.connectedListBox.insert(tk.END, name)
-                                self.deviceListBox.delete(selectedOption)
+                                self.deviceListBox.insert(tk.END, name)
+                                self.connectedListBox.delete(selectedOption)
 
 children = []
 sensors = {}
