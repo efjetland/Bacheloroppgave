@@ -1,12 +1,11 @@
 import Tkinter as tk
-import tkMessageBox, os, csv
+import tkMessageBox, os, csv, time, pexpect
 import matplotlib as mpl
-import time
-mpl.use('TkAgg')
+from bluetooth import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from gattlib import DiscoveryService
-import pexpect
+mpl.use('TkAgg')
 
 #Constants
 LARGE_FONT = ("Verdana", 35)
@@ -27,10 +26,8 @@ status = 0
 startTime = time.time()
 pauseTime = 0
 timePaused = 0
-service = DiscoveryService("hci0")
-devices = service.discover(2)
+devices = scan()
 connectedDevices = []
-deviceList = []
 
 #DebugInfo
 timerSecond=time.time()
@@ -60,62 +57,6 @@ discoveredBluetoothDevices= {"PolarBelt1":"1293128973981273",
                              "PolarBelt84":"1267978967897273",
                              "PolarBelt5":"1293121849418465"}
 
-class Child:
-    def __init__(self, name, address):
-        self.name = name
-        self.address = address
-        self.spawn = pexpect.spawn("gatttool -t random -I -b {0}".format(address))
-        self.isRunning = False
-
-    def getName(self):
-        return self.name
-
-    def getAddress(self):
-        return self.address
-
-    def setName(self, name):
-        self.name = name
-
-    def connect(self):
-        self.spawn.sendline("connect")
-        self.spawn.expect("Connection successful", timeout=10)
-        return True
-
-    def disconnect(self):
-        self.spawn.sendline("disconnect")
-        self.spawn.sendline("quit")
-        return True
-    def start(self):
-        self.spawn.sendline("char-write-req 0x0011 0100")
-        self.spawn.expect("Characteristic value was written successfully")
-        self.isRunning = True
-        return True
-
-    def stop(self):
-        self.spawn.sendline("char-write-req 0x0011 0000")
-        self.spawn.expect("Characteristic value was written successfully")
-        self.isRunning = False
-        return True
-
-    def fetch_data(self):
-        if self.isRunning:
-            try:
-                self.spawn.expect("value:", timeout=2)
-                self.spawn.expect("\r\n")
-                return self.spawn.before
-            except pexpect.exceptions.TIMEOUT:
-                return -1
-        else:
-            return -1
-
-    def battery_level(self):
-        self.spawn.sendline("char-read-hnd 0x0041")
-        self.spawn.expect("Characteristic value/descriptor:")
-        self.spawn.expect("\r\n")
-        data = self.spawn.before
-        return str(int(data, 16)) + "%"
-
-
 class Loggerapp(tk.Tk):
 
     def __init__(self,  *args, **kwargs):
@@ -126,7 +67,7 @@ class Loggerapp(tk.Tk):
         tk.Tk.geometry(self, "800x415")
         self.maxsize(width=800, height=455)
         self.minsize(width=600, height=400)
-        self.test="TestButtonTHing"
+        self.test="TestButtonThing"
 
         container = tk.Frame(self) #Container frame, full window
         container["bg"] = BACKGROUND_COLOR #Set the background color of the main window
@@ -413,45 +354,49 @@ class ConnectionWindow(tk.Frame):
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
         print(selectedOption)
-        if selectedOption != "":
+        if selectedOption != ():
             name = self.deviceListBox.get(selectedOption)
             print name
             for key, val in devices.items():
                 if val == name:
-                    child = Child(name, key)
+                    child = HeartRateMonitor(name, key)
                     if child.connect():
-                        children.append(child)
+                        connectedDevices.append(child)
                         connectedDevices.append(name)
                         self.connectedListBox.insert(tk.END, name)
                         self.deviceListBox.delete(selectedOption)
 
     def scanForDevices(self):
         global devices
-        devices = service.discover(2)
+        devices = scan()
         print devices
-        print deviceList
         print connectedDevices
+        self.deviceListBox.delete(tk.FIRST,tk.END)
         for address, name in devices.items():
-            if address not in connectedDevices:
-                connectedDevices.append(address)
+            inList = False
+            for device in connectedDevices:
+                if name == device.getName():
+                    inList = True
+            if not inList:
+                self.deviceListBox.insert(tk.END, name)
 
     def disconnectDevice(self):
         selectedOption = self.connectedListBox.curselection()
         print selectedOption
-        if selectedOption != "":
+        if selectedOption != ():
             name = self.connectedListBox.get(selectedOption)
             print name
             for key, val in connectedDevices.items():
                 if val == name:
-                    for child in children:
+                    for child in connectedDevices:
                         if child.getName == name:
                             if child.disconnect():
-                                children.remove()
+                                connectedDevices.remove()
                                 connectedDevices.append(name)
                                 self.deviceListBox.insert(tk.END, name)
                                 self.connectedListBox.delete(selectedOption)
 
-children = []
+connectedDevices = []
 sensors = {}
 app = Loggerapp()
 #Main Loop
@@ -468,7 +413,7 @@ while isRunning:
             #print("Loops this past second: {}".format(avgSecond))  #DEBUG
             #print("Average loops for total runtime: {}".format(avg)) #DEBUG
             
-            for child in children:
+            for child in connectedDevices:
                 data = child.fetch_data()
                 print("\n\nSensor {}:\n".format(child.getName()))
                 if data != -1:
