@@ -107,6 +107,7 @@ class MainWindow(tk.Frame):
         graphPanel.grid(column=0,row=0) #add the container to the mainwindow frame on the first row
         optionsPanel = tk.Frame(self, bg="#303030", width=186, height=415)
         optionsPanel.grid(column=1, row=0, rowspan=2, sticky="NE")
+        self.optionsPanel = optionsPanel
 
         #BUTTON SECTION
         self.startButtonImage = tk.PhotoImage(file="images/gButton.gif") #load green button image
@@ -182,6 +183,8 @@ class MainWindow(tk.Frame):
         plot.set_ylabel("HR")
         plot.set_title("Heartratevariablility over time")
         plot.legend(loc="upper right")
+        self.generateSettings(self.optionsPanel)
+
 
     def startButtonAction(self):
         global status
@@ -387,6 +390,7 @@ class ConnectionWindow(tk.Frame):
             device.start_notif()
             sensors[device.getName()] = []
             newData[device.getName()] = 0
+            activesensors.append(device.getName())
         print(sensors)
         mainWindow.clearGraph()
 
