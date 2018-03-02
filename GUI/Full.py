@@ -332,6 +332,7 @@ class ConnectionWindow(tk.Frame):
     def nextAction(self):
         global sensors
         sensors = []
+        print "Moving on"
         for device in connectedDevices:
             device.start()
             sensors[device.getName()] = []
@@ -388,10 +389,17 @@ app = Loggerapp()
 
 #Main Loop
 while isRunning:
-    
-    for device in connectedDevices:
+    if status == RUNNING:
+        ticks+=1
+        ticksLastSecond+=1
+        avg = ticks / (time.time() - startTime- timePaused)
+        if time.time() - timerSecond >= 1: #Code that will only run if more that a second has passed since last time the block started
+            avgSecond = ticksLastSecond/(time.time()-timerSecond)
+            ticksLastSecond = 0
+            timerSecond=time.time()
+            for device in connectedDevices:
                 data = device.fetch_data()
-                #print("\n\nSensor {}:\n".format(device.getName()))
+                print("\nSensor {}, {}".format(device.getName(), data))
                 if data != -1:
                     print(data)
                     data = data.strip().split(" ")
@@ -405,15 +413,6 @@ while isRunning:
                 else:
                     print("Error fetching data")
                     newData[device.getName()] = 0
-    
-    if status == RUNNING:
-        ticks+=1
-        ticksLastSecond+=1
-        avg = ticks / (time.time() - startTime- timePaused)
-        if time.time() - timerSecond >= 1: #Code that will only run if more that a second has passed since last time the block started
-            avgSecond = ticksLastSecond/(time.time()-timerSecond)
-            ticksLastSecond = 0
-            timerSecond=time.time()
             #print("Loops this past second: {}".format(avgSecond))  #DEBUG
             #print("Average loops for total runtime: {}".format(avg)) #DEBUG
             if len(timestamps) == 0:
