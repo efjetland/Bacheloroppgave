@@ -331,7 +331,7 @@ class ConnectionWindow(tk.Frame):
 
     def nextAction(self):
         global sensors
-        sensors = []
+        sensors = {}
         print "Moving on"
         mainWindow = self.windowController.windows["mainWindow"]
         for device in connectedDevices:
