@@ -150,6 +150,25 @@ class MainWindow(tk.Frame):
 
         self.l = 0
 
+    def clearGraph(self):
+        plot = self.plot
+        plot.clear()
+        plot.set_xlim(0, 30)
+        plot.set_ylim(0, 70)
+        plot.margins(tight=True)
+        self.linelist = []
+        #Plot data from each sensor
+        for key, value in sensors.items():
+            x = timestamps
+            y = value
+            line, = plot.plot(x,y, label=key)
+            print(line)
+            self.linelist.append(line) #Plot the data
+        plot.set_xlabel("Time")
+        plot.set_ylabel("HR")
+        plot.set_title("Heartratevariablility over time")
+        plot.legend(loc="upper right")
+
     def startButtonAction(self):
         global status
         if status < RUNNING:
@@ -334,14 +353,12 @@ class ConnectionWindow(tk.Frame):
         sensors = {}
         print "Moving on"
         mainWindow = self.windowController.windows["mainWindow"]
+        mainWindow.clearGraph()
         for device in connectedDevices:
             device.start_notif()
             sensors[device.getName()] = []
             newData[device.getName()] = 0
             print(sensors)
-            line, = mainWindow.plot.plot([],[], label=device.getName())
-            print(line)
-            self.linelist.append(line) #Plot the data
 
         self.windowController.changeView("mainWindow")
 
