@@ -125,9 +125,9 @@ class MainWindow(tk.Frame):
         optionsPanel.grid(column=1, row=0, rowspan=2, sticky="NE")
 
         #BUTTON SECTION
-        self.startButtonImage = tk.PhotoImage(file="gButton.gif") #load green button image
-        self.stopButtonImage = tk.PhotoImage(file="rButton.gif") #load red button image
-        self.pauseButtonImage = tk.PhotoImage(file="yButton.gif") #laod yellow button image
+        self.startButtonImage = tk.PhotoImage(file="images/gButton.gif") #load green button image
+        self.stopButtonImage = tk.PhotoImage(file="images/rButton.gif") #load red button image
+        self.pauseButtonImage = tk.PhotoImage(file="images/yButton.gif") #laod yellow button image
         #create start button with image
         self.startButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.startButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.startButtonAction)
         self.startButton.grid(row=0, column=0, sticky="N", padx=50, pady=10)
@@ -332,19 +332,19 @@ class ConnectionWindow(tk.Frame):
         self.connectedListBox = connectedListBox
 
         #ButtonPanel setup
-        self.scanButtonImage = tk.PhotoImage(file="scanButton.gif") #load Scan button image
+        self.scanButtonImage = tk.PhotoImage(file="images/scanButton.gif") #load Scan button image
         self.scanButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.scanButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.scanButton.grid(row=0, column=0, padx=10)
 
-        self.connectButtonImage = tk.PhotoImage(file="connectButton.gif") #load Connect button image
+        self.connectButtonImage = tk.PhotoImage(file="images/connectButton.gif") #load Connect button image
         self.connectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.connectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0, command=self.connectDevice)
         self.connectButton.grid(row=0, column=1, padx=10)
 
-        self.disconnectButtonImage = tk.PhotoImage(file="disconnectButton.gif") #load Scan button image
+        self.disconnectButtonImage = tk.PhotoImage(file="images/disconnectButton.gif") #load Scan button image
         self.disconnectButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.disconnectButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.disconnectButton.grid(row=0, column=2, padx=10)
 
-        self.continueButtonImage = tk.PhotoImage(file="contButton.gif") #load Scan button image
+        self.continueButtonImage = tk.PhotoImage(file="images/contButton.gif") #load Scan button image
         self.continueButton = tk.Button(buttonPanel, relief="flat", bg=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, image=self.continueButtonImage, borderwidth=0, highlightthickness=0, padx=0, pady=0)
         self.continueButton.grid(row=0, column=3, padx=10)
 

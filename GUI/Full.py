@@ -28,6 +28,8 @@ pauseTime = 0
 timePaused = 0
 devices = scan()
 connectedDevices = []
+sensors = {}
+newData = {}
 
 #DebugInfo
 timerSecond=time.time()
@@ -36,9 +38,6 @@ ticksLastSecond = 0
 
 #Test data:
 timestamps = []
-sensors = {"Sensor1":[],
-           "Sensor2":[],
-           "Sensor3":[]}
 
 class Loggerapp(tk.Tk):
 
@@ -303,7 +302,6 @@ class ConnectionWindow(tk.Frame):
             deviceListBox.insert(tk.END, devices[device])
         self.deviceListBox = deviceListBox
 
-
         #RightPanel setup
         connectedListLabel = tk.Label(rightPanel,text="Connected Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
         connectedListLabel.grid(row=0, column=0, sticky="N", padx=5)
@@ -332,9 +330,16 @@ class ConnectionWindow(tk.Frame):
         self.continueButton.grid(row=0, column=3, padx=10)
 
     def nextAction(self):
-        self.windowController.changeView("mainWindow")
+        global sensors
+        sensors = []
         for device in connectedDevices:
+            device.start()
             sensors[device.getName()] = []
+            newData[device.getName()] = 0
+            print(sensors)
+
+        self.windowController.changeView("mainWindow")
+
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
@@ -379,11 +384,27 @@ class ConnectionWindow(tk.Frame):
                         self.connectedListBox.delete(selectedOption)
                         break
 
-connectedDevices = []
-sensors = {}
 app = Loggerapp()
+
 #Main Loop
 while isRunning:
+    
+    for device in connectedDevices:
+                data = device.fetch_data()
+                #print("\n\nSensor {}:\n".format(device.getName()))
+                if data != -1:
+                    print(data)
+                    data = data.strip().split(" ")
+                    newData[device.getName()] = int(data[1], 16)
+                    if (int(data[0],16)&(1<<4)) != 0:
+                        iterator = iter(data[2:])
+                        for i, j in enumerate(iterator):
+                            j = j + next(iterator)
+                            k = int(j, 16)
+                            #print("RR-interval-{}: {}\n".format(i, k))
+                else:
+                    print("Error fetching data")
+                    newData[device.getName()] = 0
     
     if status == RUNNING:
         ticks+=1
@@ -395,30 +416,15 @@ while isRunning:
             timerSecond=time.time()
             #print("Loops this past second: {}".format(avgSecond))  #DEBUG
             #print("Average loops for total runtime: {}".format(avg)) #DEBUG
-            
-            for child in connectedDevices:
-                data = child.fetch_data()
-                print("\n\nSensor {}:\n".format(child.getName()))
-                if data != -1:
-                    print(data)
-                    data = data.strip().split(" ")
-                    sensors[child.getName()].append(int(data[1], 16))
-                    if (int(data[0],16)&(1<<4)) != 0:
-                        iterator = iter(data[2:])
-                        for i, j in enumerate(iterator):
-                            j = j + next(iterator)
-                            k = int(j, 16)
-                            print("RR-interval-{}: {}\n".format(i, k))
-                else:
-                    print("Error fetching data")
-                    sensors[child.getName()].append(0)
             if len(timestamps) == 0:
                 timestamps.append(0)
             else:
                 timestamps.append((time.time() - startTime - timePaused)*TIMEMULTIPLIER)
+            
+            for sensor, data in sensors.items():
+                data.append(newData[sensor])
+                print("Adding {} to {}".format(newData[sensor], sensor))
         app.updateGraph()
-
     app.update()
-
 
 app.destroy()
