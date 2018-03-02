@@ -145,12 +145,12 @@ class MainWindow(tk.Frame):
         self.buttons = {}
         for index, (key, value) in enumerate(sensors.items()):
 
-            b = tk.Button(panel, bg='green', width=20, relief='flat')
+            b = tk.Button(panel, text=key, bg='green', width=20, relief='flat', overrelief='flat')
             i = tk.Label(panel, text=key)
             action = partial(self.toggleButton, key)
             b["command"] = action
             b.grid(row=index, column=0, padx=10, pady=5)
-            i.grid(row=index, column=0, padx=10, pady=5)
+            #i.grid(row=index, column=0, padx=10, pady=5)
             self.buttons[key] = [b, i]
 
     def toggleButton(self, name):
