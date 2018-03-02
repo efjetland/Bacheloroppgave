@@ -333,11 +333,15 @@ class ConnectionWindow(tk.Frame):
         global sensors
         sensors = []
         print "Moving on"
+        mainWindow = self.windowController.windows["mainWindow"]
         for device in connectedDevices:
-            device.start()
+            device.start_notif()
             sensors[device.getName()] = []
             newData[device.getName()] = 0
             print(sensors)
+            line, = mainWindow.plot.plot([],[], label=device.getName())
+            print(line)
+            self.linelist.append(line) #Plot the data
 
         self.windowController.changeView("mainWindow")
 

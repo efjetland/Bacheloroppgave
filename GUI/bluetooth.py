@@ -58,7 +58,7 @@ class HeartRateMonitor(BluetoothDevice):
     def start_notif(self):
         char = "0x0011"
         val = "0100"
-        if self.write_char(char, value):
+        if self.write_char(char, val):
             self.isRunning = True
             return True
         else:
@@ -67,7 +67,7 @@ class HeartRateMonitor(BluetoothDevice):
     def stop_notif(self):
         char = "0x0011"
         val = "0000"
-        if self.write_char(char, value):
+        if self.write_char(char, val):
             self.isRunning = False
             return True
         else:
