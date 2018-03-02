@@ -5,6 +5,7 @@ import time
 mpl.use('TkAgg')
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from functools import partial
 import random
 
 #Constants
@@ -13,7 +14,7 @@ MEDIUM_FONT = ("Verdana", 15)
 SMALL_FONT = ("Verdana", 10)
 BACKGROUND_COLOR = "#393939"
 GRAPH_COLOR = "#B8B8B8"
-TIMEMULTIPLIER = 45 #Debug variable to "speed up" time
+TIMEMULTIPLIER = 1 #Debug variable to "speed up" time
 
 #STATUS CONSTANTS
 NOTSTARTED = 0
@@ -26,6 +27,7 @@ status = 0
 startTime = time.time()
 pauseTime = 0
 timePaused = 0
+activesensors = []
 
 #DebugInfo
 timerSecond=time.time()
@@ -90,7 +92,7 @@ class Loggerapp(tk.Tk):
         connectWindow["bg"] = BACKGROUND_COLOR #set the background color of the MainWindow class
         self.windows["connectWindow"] = connectWindow
 
-        connectWindow.tkraise()
+        mainWindow.tkraise()
 
     def updateGraph(self):
         self.windows["mainWindow"].updateGraph()
@@ -168,6 +170,33 @@ class MainWindow(tk.Frame):
 
         self.l = 0
 
+        #OPTION PANEL
+        self.generateSettings(optionsPanel)
+
+    def generateSettings(self, panel):
+        self.buttons = {}
+        for index, (key, value) in enumerate(sensors.items()):
+
+            b = tk.Button(panel, bg='green', width=20, relief='flat')
+            i = tk.Label(panel, text=key)
+            action = partial(self.toggleButton, key)
+            b["command"] = action
+            b.grid(row=index, column=0, padx=10, pady=5)
+            i.grid(row=index, column=0, padx=10, pady=5)
+            self.buttons[key] = [b, i]
+
+    def toggleButton(self, name):
+        print name
+        print self.buttons[name][0]['bg']
+        if self.buttons[name][0]['bg'] == 'green':
+            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'red', 'red'
+            if name in activesensors:
+                activesensors.remove(name)
+        else:
+            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'green', 'green'
+            if not name in activesensors:
+                activesensors.append(name)
+
     def startButtonAction(self):
         global status
         if status < RUNNING:
@@ -226,17 +255,23 @@ class MainWindow(tk.Frame):
         if timestamps[len(timestamps)-1] < 30:
             self.plot.set_xlim(0,30)
             for i, (key, value) in enumerate(sensors.items()):
-                x = timestamps[self.l:len(timestamps)]
-                y = value[self.l:len(timestamps)]
-                self.linelist[i].set_data(x,y)
+                if key in activesensors:
+                    x = timestamps[self.l:len(timestamps)]
+                    y = value[self.l:len(timestamps)]
+                    self.linelist[i].set_data(x,y)
+                else:
+                    self.linelist[i].set_data([],[])
         else:
             self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
             if self.l == 0:
                 self.l = len(timestamps)
             for i, (key, value) in enumerate(sensors.items()):
-                x = timestamps[len(timestamps)-self.l:len(timestamps)]
-                y = value[len(timestamps)-self.l:len(timestamps)]
-                self.linelist[i].set_data(x,y)
+                if key in activesensors:
+                    x = timestamps[len(timestamps)-self.l:len(timestamps)]
+                    y = value[len(timestamps)-self.l:len(timestamps)]
+                    self.linelist[i].set_data(x,y)
+                else:
+                    self.linelist[i].set_data([],[])
 
 
 

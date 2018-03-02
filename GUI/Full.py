@@ -4,6 +4,7 @@ import matplotlib as mpl
 from bluetooth import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from functools import partial
 from gattlib import DiscoveryService
 mpl.use('TkAgg')
 
@@ -28,6 +29,7 @@ pauseTime = 0
 timePaused = 0
 devices = scan()
 connectedDevices = []
+activesensors = []
 sensors = {}
 newData = {}
 
@@ -128,13 +130,39 @@ class MainWindow(tk.Frame):
         self.plot = plot
         self.clearGraph()
 
-
         canvas = FigureCanvasTkAgg(figure, master=graphPanel) #create a canvas to draw the figure on, graphPanel is parent
         self.canvas=canvas
         canvas.show()
         canvas.get_tk_widget().pack(side="left", fill="both", expand=True, padx=14, pady=14) #add the canvas to the window
 
         self.l = 0
+
+        #OPTION PANEL
+        self.generateSettings(optionsPanel)
+
+    def generateSettings(self, panel):
+        self.buttons = {}
+        for index, (key, value) in enumerate(sensors.items()):
+
+            b = tk.Button(panel, bg='green', width=20, relief='flat')
+            i = tk.Label(panel, text=key)
+            action = partial(self.toggleButton, key)
+            b["command"] = action
+            b.grid(row=index, column=0, padx=10, pady=5)
+            i.grid(row=index, column=0, padx=10, pady=5)
+            self.buttons[key] = [b, i]
+
+    def toggleButton(self, name):
+        print name
+        print self.buttons[name][0]['bg']
+        if self.buttons[name][0]['bg'] == 'green':
+            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'red', 'red'
+            if name in activesensors:
+                activesensors.remove(name)
+        else:
+            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'green', 'green'
+            if not name in activesensors:
+                activesensors.append(name)
 
     def clearGraph(self):
         plot = self.plot
@@ -216,29 +244,32 @@ class MainWindow(tk.Frame):
         if timestamps[len(timestamps)-1] < 30:
             self.plot.set_xlim(0,30)
             for i, (key, value) in enumerate(sensors.items()):
-                x = timestamps[self.l:len(timestamps)]
-                y = value[self.l:len(timestamps)]
-                self.linelist[i].set_data(x,y)
-                if min(y) - graphPadding < minY:
-                    minY = min(y) - graphPadding
-                if max(y) + graphPadding > maxY:
-                    maxY = max(y) + graphPadding
+                if key in activesensors:
+                    x = timestamps[self.l:len(timestamps)]
+                    y = value[self.l:len(timestamps)]
+                    self.linelist[i].set_data(x,y)
+                    if min(y) - graphPadding < minY:
+                        minY = min(y) - graphPadding
+                    if max(y) + graphPadding > maxY:
+                        maxY = max(y) + graphPadding
+                else:
+                    self.linelist[i].set_data([],[])
         else:
             self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
             if self.l == 0:
                 self.l = len(timestamps)
             for i, (key, value) in enumerate(sensors.items()):
-                x = timestamps[len(timestamps)-self.l:len(timestamps)]
-                y = value[len(timestamps)-self.l:len(timestamps)]
-                self.linelist[i].set_data(x,y)
-                if min(y) - graphPadding < minY:
-                    minY = min(y) - graphPadding
-                if max(y) + graphPadding > maxY:
-                    maxY = max(y) + graphPadding
+                if key in activesensors:
+                    x = timestamps[len(timestamps)-self.l:len(timestamps)]
+                    y = value[len(timestamps)-self.l:len(timestamps)]
+                    self.linelist[i].set_data(x,y)
+                    if min(y) - graphPadding < minY:
+                        minY = min(y) - graphPadding
+                    if max(y) + graphPadding > maxY:
+                        maxY = max(y) + graphPadding
+                else:
+                    self.linelist[i].set_data([],[])
         self.plot.set_ylim(minY, maxY)
-
-
-
 
         self.canvas.show()
 
@@ -360,7 +391,6 @@ class ConnectionWindow(tk.Frame):
         mainWindow.clearGraph()
 
         self.windowController.changeView("mainWindow")
-
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
