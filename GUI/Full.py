@@ -122,25 +122,11 @@ class MainWindow(tk.Frame):
         #GRAPH SECTION
         figure = Figure(figsize=(5.86,2.3),dpi=100) #create a new figure
         figure.patch.set_facecolor(GRAPH_COLOR) #set background color around the graph
-        mpl.rc('lines', lw=0.5) #width of graph lines
+        mpl.rc('lines', lw=1) #width of graph lines
         plot = figure.add_subplot(111, fc=GRAPH_COLOR) #create subplot and axes, set background on graph
         self.figure = figure
         self.plot = plot
-        plot.set_xlim(0, 30)
-        plot.set_ylim(0, 70)
-        plot.margins(tight=True)
-        self.linelist = []
-        #Plot data from each sensor
-        for key, value in sensors.items():
-            x = timestamps
-            y = value
-            line, = plot.plot(x,y, label=key)
-            print(line)
-            self.linelist.append(line) #Plot the data
-        plot.set_xlabel("Time")
-        plot.set_ylabel("HR")
-        plot.set_title("Heartratevariablility over time")
-        plot.legend(loc="upper right")
+        self.clearGraph()
 
 
         canvas = FigureCanvasTkAgg(figure, master=graphPanel) #create a canvas to draw the figure on, graphPanel is parent
@@ -224,12 +210,19 @@ class MainWindow(tk.Frame):
             self.startButtonAction()
 
     def updateGraph(self):
+        minY = 70
+        maxY = 70
+        graphPadding = 3
         if timestamps[len(timestamps)-1] < 30:
             self.plot.set_xlim(0,30)
             for i, (key, value) in enumerate(sensors.items()):
                 x = timestamps[self.l:len(timestamps)]
                 y = value[self.l:len(timestamps)]
                 self.linelist[i].set_data(x,y)
+                if min(y) - graphPadding < minY:
+                    minY = min(y) - graphPadding
+                if max(y) + graphPadding > maxY:
+                    maxY = max(y) + graphPadding
         else:
             self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
             if self.l == 0:
@@ -238,6 +231,11 @@ class MainWindow(tk.Frame):
                 x = timestamps[len(timestamps)-self.l:len(timestamps)]
                 y = value[len(timestamps)-self.l:len(timestamps)]
                 self.linelist[i].set_data(x,y)
+                if min(y) - graphPadding < minY:
+                    minY = min(y) - graphPadding
+                if max(y) + graphPadding > maxY:
+                    maxY = max(y) + graphPadding
+        self.plot.set_ylim(minY, maxY)
 
 
 
@@ -353,12 +351,13 @@ class ConnectionWindow(tk.Frame):
         sensors = {}
         print "Moving on"
         mainWindow = self.windowController.windows["mainWindow"]
-        mainWindow.clearGraph()
+
         for device in connectedDevices:
             device.start_notif()
             sensors[device.getName()] = []
             newData[device.getName()] = 0
-            print(sensors)
+        print(sensors)
+        mainWindow.clearGraph()
 
         self.windowController.changeView("mainWindow")
 
