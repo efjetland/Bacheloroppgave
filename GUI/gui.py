@@ -39,6 +39,7 @@ timestamps = []
 sensors = {"Sensor1":[],
            "Sensor2":[],
            "Sensor3":[]}
+activesensors = ["Sensor1","Sensor2"]
 discoveredBluetoothDevices= {"PolarBelt1":"1293128973981273",
                              "PolarBelt12":"1212312312311273",
                              "PolarBelt13":"1231231981271231",
@@ -146,8 +147,6 @@ class MainWindow(tk.Frame):
         plot = figure.add_subplot(111, fc=GRAPH_COLOR) #create subplot and axes, set background on graph
         self.figure = figure
         self.plot = plot
-        plot.set_xlim(0, 30)
-        plot.set_ylim(0, 70)
         plot.margins(tight=True)
         self.linelist = []
         #Plot data from each sensor
@@ -239,9 +238,6 @@ class MainWindow(tk.Frame):
                 os.makedirs(directory)
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
             #File saving options:
-            #self.saveDataTxt()
-            #self.saveRawData()
-            #self.saveDataJsonByTimestamps()
             self.saveCSVFile()
             status = NOTSTARTED
             self.l = 0
@@ -252,74 +248,33 @@ class MainWindow(tk.Frame):
             self.startButtonAction()
 
     def updateGraph(self):
-        if timestamps[len(timestamps)-1] < 30:
-            self.plot.set_xlim(0,30)
-            for i, (key, value) in enumerate(sensors.items()):
-                if key in activesensors:
-                    x = timestamps[self.l:len(timestamps)]
-                    y = value[self.l:len(timestamps)]
-                    self.linelist[i].set_data(x,y)
-                else:
-                    self.linelist[i].set_data([],[])
+        minY = 70
+        maxY = 70
+        graphPadding = 3
+        graphXSeconds = 50
+        dataLength = 0
+        latestTime = timestamps[len(timestamps)-1]
+        if latestTime < graphXSeconds:
+            self.plot.set_xlim(0,graphXSeconds)
+            dataLength = len(timestamps)
         else:
-            self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
-            if self.l == 0:
-                self.l = len(timestamps)
-            for i, (key, value) in enumerate(sensors.items()):
-                if key in activesensors:
-                    x = timestamps[len(timestamps)-self.l:len(timestamps)]
-                    y = value[len(timestamps)-self.l:len(timestamps)]
-                    self.linelist[i].set_data(x,y)
-                else:
-                    self.linelist[i].set_data([],[])
+            self.plot.set_xlim(latestTime-graphXSeconds,latestTime)
+            dataLength = graphXSeconds
 
+        for i, (key, value) in enumerate(sensors.items()):
+            if key in activesensors:
+                x = timestamps[len(timestamps)-dataLength:len(timestamps)]
+                y = value[len(value)-dataLength:len(value)]
+                self.linelist[i].set_data(x,y)
+                if min(y) - graphPadding < minY:
+                    minY = min(y) - graphPadding
+                if max(y) + graphPadding > maxY:
+                    maxY = max(y) + graphPadding
+            else:
+                self.linelist[i].set_data([],[])
 
-
-
+        self.plot.set_ylim(minY, maxY)
         self.canvas.show()
-
-    def saveDataTxt(self):
-        with open("data/data.txt", "w") as f:
-            f.write("Timestamps: ")
-            for time in timestamps:
-                if time%1==0:
-                    f.write("    {}.0".format(time))
-                else:
-                    f.write("    {}".format(time))
-            f.write("\n")
-            for sensor in sensors.keys():
-                f.write("Data from sensor {}:".format(sensor))
-                for data in sensors[sensor]:
-                    if data<10:
-                        f.write("    0{}".format(data))
-                    else:
-                        f.write("    {}".format(data))
-
-                f.write("\n")
-            f.write("Stopped at {}".format(timestamps[len(timestamps)-1]))
-            print("Saved .txt file")
-
-    def saveDataJsonByTimestamps(self):
-        with open("data/data.json", "w") as f:
-            f.write('{\n"Timestamps":\n    {\n')
-            for time in timestamps:
-                if time != timestamps[0]:
-                    f.write(",\n")
-                f.write('        "{}":\n'.format(time))
-                f.write("            {")
-                for index, (key, value) in enumerate(sensors.items()):
-                    if index>0:
-                        f.write(",")
-                    f.write('"{}":{}'.format(key,value[timestamps.index(time)]))
-                f.write('}')
-            f.write("\n    }\n}")
-            print("Saved .json file")
-
-    def saveRawData(self):
-        with open("data/data.dat", "w") as f:
-            f.write("{}\n".format(timestamps))
-            f.write("{}".format(sensors))
-            print("Saved .dat file")
 
     def saveCSVFile(self):
         with open("data/data.csv","wb") as f:
@@ -396,14 +351,7 @@ app = Loggerapp()
 while isRunning:
 
     if status == RUNNING:
-        if len(timestamps) == 0:
-            timestamps.append(0)
-        else:
-            timestamps.append((time.time() - startTime - timePaused)*TIMEMULTIPLIER)
-        for ind, (key, value) in enumerate(sensors.items()):
-            temp = random.randrange(5,50,1)
-            sensors[key].append(temp)
-        app.updateGraph()
+
 
         ticks+=1
         ticksLastSecond+=1
@@ -414,7 +362,17 @@ while isRunning:
             timerSecond=time.time()
             print("Loops this past second: {}".format(avgSecond))
             print("Average loops for total runtime: {}".format(avg))
+            if len(timestamps) == 0:
+                timestamps.append(0)
+            else:
+                timestamps.append((time.time() - startTime - timePaused)*TIMEMULTIPLIER)
+
+            for ind, (key, value) in enumerate(sensors.items()):
+                temp = random.randrange(5,50,1)
+                sensors[key].append(temp)
+        app.updateGraph()
     app.update()
+
 
 
 app.destroy()

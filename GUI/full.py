@@ -146,11 +146,11 @@ class MainWindow(tk.Frame):
         for index, (key, value) in enumerate(sensors.items()):
 
             b = tk.Button(panel, text=key, bg='green', width=20, relief='flat', overrelief='flat')
-            i = tk.Label(panel, text=key)
             action = partial(self.toggleButton, key)
             b["command"] = action
+            b.configure(state='normal', relief='flat', bg='green')
             b.grid(row=index, column=0, padx=10, pady=5)
-            #i.grid(row=index, column=0, padx=10, pady=5)
+
             self.buttons[key] = [b, i]
 
     def toggleButton(self, name):
@@ -160,10 +160,18 @@ class MainWindow(tk.Frame):
             self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'red', 'red'
             if name in activesensors:
                 activesensors.remove(name)
+                for i, (key, value) in enumerate(sensors.items()):
+                    if key == name:
+                        self.linelist[i].set_data([],[])
         else:
             self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'green', 'green'
             if not name in activesensors:
                 activesensors.append(name)
+                for i, (key, value) in enumerate(sensors.items()):
+                    if key == name:
+                        x = timestamps[self.l:len(timestamps)]
+                        y = value[self.l:len(timestamps)]
+                        self.linelist[i].set_data(x,y)
 
     def clearGraph(self):
         plot = self.plot
@@ -184,7 +192,6 @@ class MainWindow(tk.Frame):
         plot.set_title("Heartratevariablility over time")
         plot.legend(loc="upper right")
         self.generateSettings(self.optionsPanel)
-
 
     def startButtonAction(self):
         global status
@@ -275,49 +282,6 @@ class MainWindow(tk.Frame):
         self.plot.set_ylim(minY, maxY)
 
         self.canvas.show()
-
-    def saveDataTxt(self):
-        with open("data/data.txt", "w") as f:
-            f.write("Timestamps: ")
-            for time in timestamps:
-                if time%1==0:
-                    f.write("    {}.0".format(time))
-                else:
-                    f.write("    {}".format(time))
-            f.write("\n")
-            for sensor in sensors.keys():
-                f.write("Data from sensor {}:".format(sensor))
-                for data in sensors[sensor]:
-                    if data<10:
-                        f.write("    0{}".format(data))
-                    else:
-                        f.write("    {}".format(data))
-
-                f.write("\n")
-            f.write("Stopped at {}".format(timestamps[len(timestamps)-1]))
-            print("Saved .txt file")
-
-    def saveDataJsonByTimestamps(self):
-        with open("data/data.json", "w") as f:
-            f.write('{\n"Timestamps":\n    {\n')
-            for time in timestamps:
-                if time != timestamps[0]:
-                    f.write(",\n")
-                f.write('        "{}":\n'.format(time))
-                f.write("            {")
-                for index, (key, value) in enumerate(sensors.items()):
-                    if index>0:
-                        f.write(",")
-                    f.write('"{}":{}'.format(key,value[timestamps.index(time)]))
-                f.write('}')
-            f.write("\n    }\n}")
-            print("Saved .json file")
-
-    def saveRawData(self):
-        with open("data/data.dat", "w") as f:
-            f.write("{}\n".format(timestamps))
-            f.write("{}".format(sensors))
-            print("Saved .dat file")
 
     def saveCSVFile(self):
         with open("data/data.csv","wb") as f:
