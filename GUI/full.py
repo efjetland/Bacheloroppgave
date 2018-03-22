@@ -22,6 +22,7 @@ PAUSED = 1
 RUNNING = 2
 
 #GlobalVar
+timeOfStartString = time.strftime("%d%b,%y-%H.%M", time.gmtime())
 isRunning = True
 status = 0
 startTime = time.time()
@@ -200,6 +201,14 @@ class MainWindow(tk.Frame):
             if status == NOTSTARTED:
                 global startTime
                 startTime = time.time()
+                #Open file for writing
+                self.csvfile = open("data/{}.csv".format(timeOfStartString), "wb")
+                self.writer = csv.writer(self.csvfile)
+                self.sensorOrder = []
+                for name in sensors.keys():
+                    self.sensorOrder.append(name)
+                labels = ["Timestamps"] + self.sensorOrder
+                self.writer.writerow(labels)
             if status == PAUSED:
                 global timePaused, pauseTime
                 timePaused += (time.time() - pauseTime)
@@ -234,8 +243,8 @@ class MainWindow(tk.Frame):
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
-            #File saving options:
-            self.saveCSVFile()
+            #Close File
+            self.csvfile.close()
             status = NOTSTARTED
             self.l = 0
             timestamps = []
@@ -287,6 +296,12 @@ class MainWindow(tk.Frame):
             for key, val in sensors.items():
                 w.writerow([key] + val)
             print("Saved .csv file")
+
+    def saveContinuouslyCSV(self):
+        newData = [timestamps[len(timestamps)-1]]
+        for name in self.sensorOrder:
+            newData.append(sensors[name][len(sensors[name])-1])
+        self.writer.writerow(newData)
 
 class ConnectionWindow(tk.Frame):
 

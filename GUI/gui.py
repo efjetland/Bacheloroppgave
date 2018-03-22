@@ -247,8 +247,9 @@ class MainWindow(tk.Frame):
             if not os.path.exists(directory):
                 os.makedirs(directory)
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
-            #File saving options:
-            self.saveCSVFile()
+
+            #Close File
+            self.csvfile.close()
             status = NOTSTARTED
             self.l = 0
             timestamps = []
