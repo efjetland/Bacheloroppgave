@@ -235,9 +235,6 @@ class MainWindow(tk.Frame):
                 os.makedirs(directory)
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
             #File saving options:
-            #self.saveDataTxt()
-            #self.saveRawData()
-            #self.saveDataJsonByTimestamps()
             self.saveCSVFile()
             status = NOTSTARTED
             self.l = 0

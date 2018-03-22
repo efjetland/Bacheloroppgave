@@ -35,3 +35,5 @@ def updateGraph(self):
         self.plot.set_ylim(minY, maxY)
 
         self.canvas.show()
+
+
