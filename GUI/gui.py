@@ -178,21 +178,23 @@ class MainWindow(tk.Frame):
         self.buttons = {}
         for index, (key, value) in enumerate(sensors.items()):
 
-            b = tk.Button(panel, bg='green', width=20, relief='flat')
+            b = tk.Button(panel, text=key, bg='green', width=20, relief='flat', overrelief='flat')
             action = partial(self.toggleButton, key)
             b["command"] = action
+            b.configure(state='normal', relief='flat', bg='green')
             b.grid(row=index, column=0, padx=10, pady=5)
-            self.buttons[key] = b
+
+            self.buttons[key] = [b]
 
     def toggleButton(self, name):
         print name
-        print self.buttons[name][0]['bg']
-        if self.buttons[name][0]['bg'] == 'green':
-            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'red', 'red'
+        print self.buttons[name]['bg']
+        if self.buttons[name]['bg'] == 'green':
+            self.buttons[name]['bg'] = 'red'
             if name in activesensors:
                 activesensors.remove(name)
         else:
-            self.buttons[name][0]['bg'], self.buttons[name][1]['bg'] = 'green', 'green'
+            self.buttons[name]['bg'] = 'green'
             if not name in activesensors:
                 activesensors.append(name)
 
