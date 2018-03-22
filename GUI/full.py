@@ -152,7 +152,7 @@ class MainWindow(tk.Frame):
             b.configure(state='normal', relief='flat', bg='green')
             b.grid(row=index, column=0, padx=10, pady=5)
 
-            self.buttons[key] = [b, i]
+            self.buttons[key] = [b]
 
     def toggleButton(self, name):
         print name
