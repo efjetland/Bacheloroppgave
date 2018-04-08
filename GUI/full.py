@@ -356,18 +356,21 @@ class ConnectionWindow(tk.Frame):
     def nextAction(self):
         global sensors
         sensors = {}
-        print "Moving on"
-        mainWindow = self.windowController.windows["mainWindow"]
+        if len(connectedDevices) > 0:
+            print "Moving on"
+            mainWindow = self.windowController.windows["mainWindow"]
 
-        for device in connectedDevices:
-            device.start_notif()
-            sensors[device.getName()] = []
-            newData[device.getName()] = 0
-            activesensors.append(device.getName())
-        print(sensors)
-        mainWindow.clearGraph()
+            for device in connectedDevices:
+                device.start_notif()
+                sensors[device.getName()] = []
+                newData[device.getName()] = 0
+                activesensors.append(device.getName())
+            print(sensors)
+            mainWindow.clearGraph()
 
-        self.windowController.changeView("mainWindow")
+            self.windowController.changeView("mainWindow")
+        else:
+            tkMessageBox.showinfo(title="No Devices Conencted", message="Please connect at least one device")
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
