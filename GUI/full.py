@@ -358,13 +358,20 @@ class ConnectionWindow(tk.Frame):
         if len(connectedDevices) > 0:
             print "Moving on"
             mainWindow = self.windowController.windows["mainWindow"]
-
+            failedConnections = []
             for device in connectedDevices:
-                device.start_notif()
-                sensors[device.getName()] = []
-                newData[device.getName()] = 0
-                activesensors.append(device.getName())
+                if device.start_notif():
+                    sensors[device.getName()] = []
+                    newData[device.getName()] = 0
+                    activesensors.append(device.getName())
+                else:
+                    failedConnections.append(device.getName)
             print(sensors)
+            print('failed : {}'.format(failedConnections))
+            stringOfFailedConnections = ""
+            for name in failedConnections:
+                stringOfFailedConnections += ' {}'.format(name)
+            tkMessageBox.showwarning('Unable to get data from device(s)', 'Unable to get data from following devices: {}'.format(stringOfFailedConnections))
             mainWindow.clearGraph()
 
             self.windowController.changeView("mainWindow")
