@@ -15,7 +15,7 @@ class BluetoothDevice(object):
     def connect(self):
         try:
             self.spawn.sendline("connect")
-            self.spawn.expect("Connection successful", timeout=10)
+            self.spawn.expect("Connection successful", timeout=5)
             return True
         except pexpect.TIMEOUT:
             return False
