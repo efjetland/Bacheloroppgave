@@ -81,7 +81,6 @@ class Loggerapp(tk.Tk):
     def updateGraph(self):
         self.windows["mainWindow"].updateGraph()
 
-
     def changeView(self, windowName):
         self.windows[windowName].tkraise()
 
@@ -93,7 +92,6 @@ class StartWindow(tk.Frame):
         self.windowController = windowController
 
 class MainWindow(tk.Frame):
-
 
     def __init__(self, parent, controller):
 
@@ -300,7 +298,7 @@ class MainWindow(tk.Frame):
         self.writer.writerow(newData)
 
     def saveHRV(self, SDNN, RMSSD, NN50, pNN50, NN20, pNN20):
-        with open("data/{}.csv".format(timeOfStartString), "wb") as f:
+        with open("data/HRV{}.csv".format(timeOfStartString), "wb") as f:
             writer = csv.writer(f)
             labels = ['Algortihm']
             for name in sensors.keys():
