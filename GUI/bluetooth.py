@@ -27,8 +27,8 @@ class BluetoothDevice(object):
     def read_hnd(self, hnd):
         try:
             self.spawn.sendline("char-read-hnd {}".format(hnd))
-            self.spawn.expect("Characteristic value/descriptor:", timeout=5)
-            self.spawn.expect("\r\n", timeout=5)
+            self.spawn.expect("Characteristic value/descriptor:", timeout=2)
+            self.spawn.expect("\r\n", timeout=1)
             return self.spawn.before
         except pexpect.exceptions.TIMEOUT:
             return "Error reading handle"
@@ -36,7 +36,7 @@ class BluetoothDevice(object):
     def write_char(self, char, value):
         try:
             self.spawn.sendline("char-write-req {} {}".format(char, value))
-            self.spawn.expect("Characteristic value was written successfully")
+            self.spawn.expect("Characteristic value was written successfully", timeout=2)
             return True
         except pexpect.exceptions.TIMEOUT:
             return False
@@ -77,7 +77,7 @@ class HeartRateMonitor(BluetoothDevice):
         if self.isRunning:
             try:
                 self.spawn.expect("value:", timeout=2)
-                self.spawn.expect("\r\n")
+                self.spawn.expect("\r\n", timeout=1)
                 return self.spawn.before
             except pexpect.exceptions.TIMEOUT:
                 return -1
