@@ -447,7 +447,7 @@ while isRunning:
                     print(data)
                     data = data.strip().split(" ")
                     newData[device.getName()] = int(data[1], 16)
-                    if device.getName in sensors.keys():
+                    if device.getName() in sensors.keys():
                         if (int(data[0],16)&(1<<4)) != 0:
                             iterator = iter(data[2:])
                             for i, j in enumerate(iterator):
