@@ -450,10 +450,11 @@ while isRunning:
                     if device.getName() in sensors.keys():
                         if (int(data[0],16)&(1<<4)) != 0:
                             iterator = iter(data[2:])
+                            newRRitnerval[device.getName()] = []
                             for i, j in enumerate(iterator):
                                 j = j + next(iterator)
                                 k = int(j, 16)
-                                newRRitnerval[device.getName()] = k
+                                newRRitnerval[device.getName()].append(k)
                                 #print("RR-interval-{}: {}\n".format(i, k))
                 else:
                     print("Error fetching data")
@@ -467,7 +468,8 @@ while isRunning:
             
             for sensor, data in sensors.items():
                 data.append(newData[sensor])
-                rrintervalsPerSensor[sensor].append(newRRitnerval[sensor])
+                for rrint in rrintervalsPerSensor[sensor]:
+                    rrintervalsPerSensor[sensor].append(rrint)
                 print rrintervalsPerSensor
         app.updateGraph()
     app.update()
