@@ -467,7 +467,7 @@ while isRunning:
             
             for sensor, data in sensors.items():
                 data.append(newData[sensor])
-                rrintervalsPerSensor[sensor].append(newRRitnerval)
+                rrintervalsPerSensor[sensor].append(newRRitnerval[sensor])
                 print rrintervalsPerSensor
         app.updateGraph()
     app.update()
