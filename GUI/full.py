@@ -322,9 +322,8 @@ class ConnectionWindow(tk.Frame):
         deviceListBox.grid(row=1,column=0, sticky="E")
         scrollbar.config(command=deviceListBox.yview)
         scrollbar.grid(row=1, column=1, sticky="WNS")
-        for device in devices.keys():
-            deviceListBox.insert(tk.END, devices[device])
         self.deviceListBox = deviceListBox
+        self.scanForDevices()
 
         #RightPanel setup
         connectedListLabel = tk.Label(rightPanel,text="Connected Devices", font=MEDIUM_FONT, bg=BACKGROUND_COLOR, fg="#b3b3b3")
