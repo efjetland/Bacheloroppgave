@@ -244,6 +244,7 @@ class MainWindow(tk.Frame):
             self.csvfile.close()
             self.saveHRV(1,1,1,1,1,1)
             status = NOTSTARTED
+            self.clearGraph()
             timestamps = []
             for key, value in sensors.items():
                 sensors[key] = []
