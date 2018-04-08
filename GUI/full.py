@@ -1,5 +1,5 @@
 import Tkinter as tk
-import tkMessageBox, os, csv, time, pexpect
+import tkMessageBox, os, csv, time, pexpect, hrv
 import matplotlib as mpl
 from bluetooth import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -244,8 +244,8 @@ class MainWindow(tk.Frame):
                 os.chown(directory, 1000, 1000) #Change owner of the data/ folder
             #Close File
             self.csvfile.close()
+            self.saveHRV(1,1,1,1,1,1)
             status = NOTSTARTED
-            self.l = 0
             timestamps = []
             for key, value in sensors.items():
                 sensors[key] = []
@@ -298,6 +298,50 @@ class MainWindow(tk.Frame):
         for name in self.sensorOrder:
             newData.append(sensors[name][len(sensors[name])-1])
         self.writer.writerow(newData)
+
+    def saveHRV(self, SDNN, RMSSD, NN50, pNN50, NN20, pNN20):
+        with open("data/{}.csv".format(timeOfStartString), "wb") as f:
+            writer = csv.writer(f)
+            labels = ['Algortihm']
+            for name in sensors.keys():
+                labels.append(name)
+            writer.writerow(labels)
+
+            if SDNN:
+                rowList = ['SDNN']
+                for name in sensors.keys():
+                    rowList.append(hrv.SDNN(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
+
+            if RMSSD:
+                rowList = ['RMSSD']
+                for name in sensors.keys():
+                    rowList.append(hrv.RMSSD(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
+
+            if NN50:
+                rowList = ['NN50']
+                for name in sensors.keys():
+                    rowList.append(hrv.NN50(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
+
+            if pNN50:
+                rowList = ['pNN50']
+                for name in sensors.keys():
+                    rowList.append(hrv.pNN50(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
+
+            if NN20:
+                rowList = ['NN20']
+                for name in sensors.keys():
+                    rowList.append(hrv.NN20(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
+
+            if pNN20:
+                rowList = ['pNN20']
+                for name in sensors.keys():
+                    rowList.append(hrv.pNN20(rrintervalsPerSensor[name]))
+                writer.writerow(rowList)
 
 class ConnectionWindow(tk.Frame):
 
