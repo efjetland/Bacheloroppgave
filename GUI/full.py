@@ -387,7 +387,7 @@ class ConnectionWindow(tk.Frame):
                         self.deviceListBox.delete(selectedOption)
                         break
                     else:
-                        tkMessageBox.showerror("Unable to connect","Unable to connect to selected device, please make sure it is supported")
+                        tkMessageBox.showerror("Unable to connect", "Unable to connect to selected device, please make sure it is supported.")
 
     def scanForDevices(self):
         global devices
@@ -402,7 +402,7 @@ class ConnectionWindow(tk.Frame):
                     inList = True
             if not inList:
                 print name
-                if name == '' or name == ' ':
+                if name == '' or name == ' ' or name is None or type(name) is not str:
                     self.deviceListBox.insert(tk.END, name)
                 else:
                     self.deviceListBox.insert(tk.END, name)
