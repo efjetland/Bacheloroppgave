@@ -370,7 +370,7 @@ class ConnectionWindow(tk.Frame):
 
             self.windowController.changeView("mainWindow")
         else:
-            tkMessageBox.showinfo(title="No Devices Conencted", message="Please connect at least one device")
+            tkMessageBox.showwarning(title="No Devices Conencted", message="Please connect at least one device")
 
     def connectDevice(self):
         selectedOption = self.deviceListBox.curselection()
@@ -386,6 +386,8 @@ class ConnectionWindow(tk.Frame):
                         self.connectedListBox.insert(tk.END, name)
                         self.deviceListBox.delete(selectedOption)
                         break
+                    else:
+                        tkMessageBox.showerror("Unable to connect","Unable to connect to selected device, please make sure it is supported")
 
     def scanForDevices(self):
         global devices
@@ -399,7 +401,11 @@ class ConnectionWindow(tk.Frame):
                 if name == device.getName():
                     inList = True
             if not inList:
-                self.deviceListBox.insert(tk.END, name)
+                print name
+                if name == '' or name == ' ':
+                    self.deviceListBox.insert(tk.END, name)
+                else:
+                    self.deviceListBox.insert(tk.END, name)
 
     def disconnectDevice(self):
         selectedOption = self.connectedListBox.curselection()
