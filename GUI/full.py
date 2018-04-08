@@ -361,12 +361,12 @@ class ConnectionWindow(tk.Frame):
                     newData[device.getName()] = 0
                     activesensors.append(device.getName())
                 else:
-                    failedConnections.append(device.getName)
+                    failedConnections.append(device.getName())
             print(sensors)
             print('failed : {}'.format(failedConnections))
             stringOfFailedConnections = ""
             for device in failedConnections:
-                stringOfFailedConnections += ' {}'.format(device.getName())
+                stringOfFailedConnections += ' {}'.format(device)
             tkMessageBox.showwarning('Unable to get data from device(s)', 'Unable to get data from following devices: {}'.format(stringOfFailedConnections))
             mainWindow.clearGraph()
 
