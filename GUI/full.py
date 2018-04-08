@@ -33,6 +33,8 @@ connectedDevices = []
 activesensors = []
 sensors = {}
 newData = {}
+newRRitnerval = {}
+rrintervalsPerSensor = {}
 
 #DebugInfo
 timerSecond=time.time()
@@ -184,9 +186,9 @@ class MainWindow(tk.Frame):
             line, = plot.plot(x,y, label=key)
             print(line)
             self.linelist.append(line) #Plot the data
-        plot.set_xlabel("Time")
+        plot.set_xlabel("Time in seconds")
         plot.set_ylabel("HR")
-        plot.set_title("Heartratevariablility over time")
+        plot.set_title("Heartrate over time")
         plot.legend(loc="upper left")
         self.generateSettings(self.optionsPanel)
 
@@ -360,6 +362,7 @@ class ConnectionWindow(tk.Frame):
                 if device.start_notif():
                     sensors[device.getName()] = []
                     newData[device.getName()] = 0
+                    rrintervalsPerSensor[device.getName()] = []
                     activesensors.append(device.getName())
                 else:
                     failedConnections.append(device.getName())
@@ -444,12 +447,14 @@ while isRunning:
                     print(data)
                     data = data.strip().split(" ")
                     newData[device.getName()] = int(data[1], 16)
-                    if (int(data[0],16)&(1<<4)) != 0:
-                        iterator = iter(data[2:])
-                        for i, j in enumerate(iterator):
-                            j = j + next(iterator)
-                            k = int(j, 16)
-                            #print("RR-interval-{}: {}\n".format(i, k))
+                    if device.getName in sensors.keys():
+                        if (int(data[0],16)&(1<<4)) != 0:
+                            iterator = iter(data[2:])
+                            for i, j in enumerate(iterator):
+                                j = j + next(iterator)
+                                k = int(j, 16)
+                                newRRitnerval[device.getName()] = k
+                                #print("RR-interval-{}: {}\n".format(i, k))
                 else:
                     print("Error fetching data")
                     newData[device.getName()] = 0
@@ -462,7 +467,8 @@ while isRunning:
             
             for sensor, data in sensors.items():
                 data.append(newData[sensor])
-                print("Adding {} to {}".format(newData[sensor], sensor))
+                rrintervalsPerSensor[sensor].append(newRRitnerval)
+                print rrintervalsPerSensor
         app.updateGraph()
     app.update()
 
