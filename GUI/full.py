@@ -22,7 +22,7 @@ PAUSED = 1
 RUNNING = 2
 
 #GlobalVar
-timeOfStartString = time.strftime("%d%b,%y-%H.%M", time.localtime())
+timeOfStartString = ""
 isRunning = True
 status = 0
 startTime = time.time()
@@ -195,7 +195,8 @@ class MainWindow(tk.Frame):
         if status < RUNNING:
             print("Starting.")
             if status == NOTSTARTED:
-                global startTime
+                global startTime, timeOfStartString
+                timeOfStartString = time.strftime("%d%b,%y-%H.%M", time.localtime())
                 startTime = time.time()
                 #Open file for writing
                 self.csvfile = open("data/{}.csv".format(timeOfStartString), "wb")
