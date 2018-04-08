@@ -22,7 +22,7 @@ PAUSED = 1
 RUNNING = 2
 
 #GlobalVar
-timeOfStartString = time.strftime("%d%b,%y-%H.%M", time.gmtime())
+timeOfStartString = time.strftime("%d%b,%y-%H.%M", time.localtime())
 isRunning = True
 status = 0
 startTime = time.time()
