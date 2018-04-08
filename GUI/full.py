@@ -402,8 +402,8 @@ class ConnectionWindow(tk.Frame):
                     inList = True
             if not inList:
                 print name
-                if name == '' or name == ' ' or name is None or type(name) is not str:
-                    self.deviceListBox.insert(tk.END, name)
+                if name == '' or name == ' ' or type(name) is not str:
+                    self.deviceListBox.insert(tk.END, "Unknown")
                 else:
                     self.deviceListBox.insert(tk.END, name)
 
