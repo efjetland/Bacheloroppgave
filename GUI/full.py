@@ -87,7 +87,7 @@ class StartWindow(tk.Frame):
 
     def __init__(self, parent, windowController):
         tk.Frame.__init__(self, parent)
-        tk.Label(self, text="SUPER SENSORDATA LOGGER").grid(sticky='NSWE')
+        tk.Label(self, text="SUPER SENSORDATA LOGGER", font=LARGE_FONT).grid(sticky='SN')
         self.windowController = windowController
 
 class MainWindow(tk.Frame):
@@ -367,7 +367,8 @@ class ConnectionWindow(tk.Frame):
             stringOfFailedConnections = ""
             for device in failedConnections:
                 stringOfFailedConnections += ' {}'.format(device)
-            tkMessageBox.showwarning('Unable to get data from device(s)', 'Unable to get data from following devices: {}'.format(stringOfFailedConnections))
+            if len(failedConnections)>0:
+                tkMessageBox.showwarning('Warning', 'Unable to get data from following devices: {}'.format(stringOfFailedConnections))
             mainWindow.clearGraph()
 
             self.windowController.changeView("mainWindow")
