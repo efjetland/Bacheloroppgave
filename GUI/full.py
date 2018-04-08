@@ -191,7 +191,7 @@ class MainWindow(tk.Frame):
         plot.set_xlabel("Time")
         plot.set_ylabel("HR")
         plot.set_title("Heartratevariablility over time")
-        plot.legend(loc="upper right")
+        plot.legend(loc="upper left")
         self.generateSettings(self.optionsPanel)
 
     def startButtonAction(self):
