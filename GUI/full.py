@@ -257,36 +257,33 @@ class MainWindow(tk.Frame):
         minY = 70
         maxY = 70
         graphPadding = 3
-        if timestamps[len(timestamps)-1] < 30:
-            self.plot.set_xlim(0,30)
-            for i, (key, value) in enumerate(sensors.items()):
-                if key in activesensors:
-                    x = timestamps[self.l:len(timestamps)]
-                    y = value[self.l:len(timestamps)]
-                    self.linelist[i].set_data(x,y)
-                    if min(y) - graphPadding < minY:
-                        minY = min(y) - graphPadding
-                    if max(y) + graphPadding > maxY:
-                        maxY = max(y) + graphPadding
-                else:
-                    self.linelist[i].set_data([],[])
+        graphXSeconds = 50
+        dataLength = 0
+        latestTime = timestamps[len(timestamps)-1]
+        if latestTime < graphXSeconds:
+            self.plot.set_xlim(0,graphXSeconds)
+            dataLength = len(timestamps)
         else:
-            self.plot.set_xlim(timestamps[len(timestamps)-1]-30,timestamps[len(timestamps)-1])
-            if self.l == 0:
-                self.l = len(timestamps)
-            for i, (key, value) in enumerate(sensors.items()):
-                if key in activesensors:
-                    x = timestamps[len(timestamps)-self.l:len(timestamps)]
-                    y = value[len(timestamps)-self.l:len(timestamps)]
-                    self.linelist[i].set_data(x,y)
-                    if min(y) - graphPadding < minY:
-                        minY = min(y) - graphPadding
-                    if max(y) + graphPadding > maxY:
-                        maxY = max(y) + graphPadding
-                else:
-                    self.linelist[i].set_data([],[])
-        self.plot.set_ylim(minY, maxY)
+            self.plot.set_xlim(latestTime-graphXSeconds,latestTime)
+            dataLength = graphXSeconds
 
+        for i, (key, value) in enumerate(sensors.items()):
+            if key in activesensors:
+                if latestTime < graphXSeconds:
+                    x = timestamps
+                    y = value
+                else:
+                    x = timestamps[len(timestamps)-dataLength:len(timestamps)]
+                    y = value[len(value)-dataLength:len(value)]
+                self.linelist[i].set_data(x,y)
+                if min(y) - graphPadding < minY:
+                    minY = min(y) - graphPadding
+                if max(y) + graphPadding > maxY:
+                    maxY = max(y) + graphPadding
+            else:
+                self.linelist[i].set_data([],[])
+
+        self.plot.set_ylim(minY, maxY)
         self.canvas.show()
 
     def saveCSVFile(self):
