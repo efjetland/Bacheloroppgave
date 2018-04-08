@@ -52,7 +52,6 @@ class Loggerapp(tk.Tk):
         tk.Tk.geometry(self, "800x415")
         self.maxsize(width=800, height=455)
         self.minsize(width=600, height=400)
-        self.test="TestButtonThing"
 
         container = tk.Frame(self) #Container frame, full window
         container["bg"] = BACKGROUND_COLOR #Set the background color of the main window
@@ -88,11 +87,8 @@ class StartWindow(tk.Frame):
 
     def __init__(self, parent, windowController):
         tk.Frame.__init__(self, parent)
-        tk.Button(self, text=windowController.test, command=self.nextAction).grid(pady=200,padx=400)
+        tk.Label(self, text="SUPER SENSORDATA LOGGER").grid(sticky='NSWE')
         self.windowController = windowController
-
-    def nextAction(self):
-        self.windowController.changeView("mainWindow")
 
 class MainWindow(tk.Frame):
 
@@ -369,8 +365,8 @@ class ConnectionWindow(tk.Frame):
             print(sensors)
             print('failed : {}'.format(failedConnections))
             stringOfFailedConnections = ""
-            for name in failedConnections:
-                stringOfFailedConnections += ' {}'.format(name)
+            for device in failedConnections:
+                stringOfFailedConnections += ' {}'.format(device.getName())
             tkMessageBox.showwarning('Unable to get data from device(s)', 'Unable to get data from following devices: {}'.format(stringOfFailedConnections))
             mainWindow.clearGraph()
 
