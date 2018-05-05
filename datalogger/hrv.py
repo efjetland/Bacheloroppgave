@@ -20,7 +20,7 @@ def RMSSD(rrIntervals):
     sum_sdiff = 0
     for i, interval in enumerate(rrIntervals[:-1]):
         #Squared difference in rr-intervals
-        sdiff = rrIntervals[i+1] - interval
+        sdiff = pow(rrIntervals[i+1] - interval, 2)
         sum_sdiff += sdiff
 
     # Square root of the sum of squared differences in rr-intervals divided by the sample size minus one
