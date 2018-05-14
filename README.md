@@ -1,5 +1,5 @@
 # Bacheloroppgave
-### System for logging av biometriske sensor data
+### System for logging av hjertedata
 
 Mappen datalogger inneholder programkoden og bildefiler for knapper.
 Filen [app.py](https://github.com/efjetland/Bacheloroppgave/blob/master/datalogger/app.py) inneholder selve programmet med oppsett av grafisk brukergrensesnitt og lagring av filer.
